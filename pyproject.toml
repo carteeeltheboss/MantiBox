@@ -1,0 +1,22 @@
+[project]
+name = "maintidoc"
+version = "0.0.0"
+requires-python = ">=3.11"
+dependencies = []  # add with an ADR; pin exact versions in a lockfile
+
+[project.optional-dependencies]
+dev = ["ruff", "mypy", "pytest", "pre-commit"]  # pin exact versions in the lockfile
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "S", "T20"]
+
+[tool.mypy]
+strict = true
+files = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
