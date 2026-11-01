@@ -1,0 +1,50 @@
+# Line endings are a repo-level contract, not a per-developer setting.
+#
+# The project is developed on Windows and deployed to Linux containers. Without
+# this file the result depends on each machine's core.autocrlf, which is how
+# whole-file diffs and `make` failures creep in. Everything is stored and
+# checked out as LF; only Windows batch files keep CRLF.
+* text=auto eol=lf
+
+# Make chokes on CRLF recipes.
+Makefile text eol=lf
+*.mk text eol=lf
+
+# Shell scripts must be LF or they will not execute in the containers.
+*.sh text eol=lf
+*.bash text eol=lf
+
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Python and config
+*.py text eol=lf
+*.pyi text eol=lf
+*.toml text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.cfg text eol=lf
+*.ini text eol=lf
+*.txt text eol=lf
+*.md text eol=lf
+Dockerfile* text eol=lf
+
+# Binary: never touched by line-ending or diff filters
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.ttf binary
+*.woff binary
+*.woff2 binary
+*.zip binary
+*.tar binary
+*.gz binary
+*.safetensors binary
+*.bin binary
+*.onnx binary
+*.pt binary

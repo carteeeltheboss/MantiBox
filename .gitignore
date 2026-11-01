@@ -1,0 +1,63 @@
+# --- secrets: NEVER committed (AGENTS.md NEVER #1) ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# --- python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+
+# --- tooling caches ---
+.nox/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# --- models & weights: downloaded at runtime, never in git ---
+models/
+*.safetensors
+*.bin
+*.gguf
+*.pt
+*.onnx
+
+# --- generated corpus & data stores ---
+# the manifest IS committed (docs requirement), the binary documents are not
+corpus/documents/
+corpus/images/
+corpus/rendered/
+# scratch corpus output from smoke tests (--corpus-dir .tmp-corpus)
+.tmp-corpus/
+data/
+qdrant_storage/
+pgdata/
+minio_data/
+mlruns/
+*.sqlite3
+
+# --- logs: technical metadata only, and never committed ---
+logs/
+*.log
+
+# --- os / editors ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# --- agent worktrees ---
+.qwen/worktrees/

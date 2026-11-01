@@ -1,22 +1,151 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
 [project]
 name = "maintidoc"
-version = "0.0.0"
+version = "0.1.0"
+description = "Multimodal, agentic maintenance-documentation assistant with sourced answers."
+readme = "README.md"
 requires-python = ">=3.11"
-dependencies = []  # add with an ADR; pin exact versions in a lockfile
+license = { file = "LICENSE" }
+
+# Lower bounds only. Exact versions are pinned in requirements.lock.txt, which
+# is the file the Docker images install from (AGENTS.md: "pinned in the lockfile").
+# Any new dependency or version bump requires an ADR (AGENTS.md NEVER #8).
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.32",
+  "python-multipart>=0.0.12",
+  "pydantic>=2.9",
+  "pydantic-settings>=2.6",
+  "PyYAML>=6.0",
+  "httpx>=0.27",
+  "tenacity>=9.0",
+  "PyJWT>=2.9",
+  "argon2-cffi>=23.1",
+  "Pillow>=11.0",
+  "PyMuPDF>=1.24",
+  "pytesseract>=0.3.13",
+  "qdrant-client>=1.12",
+  "SQLAlchemy>=2.0",
+  "psycopg[binary]>=3.2",
+  "minio>=7.2",
+  "mcp>=1.2",
+  "langchain-core>=0.3",
+  "langgraph>=0.2",
+  # Prompt templates contain literal JSON braces, so f-string formatting cannot
+  # be used; jinja2 is the template_format langchain-core supports for this.
+  # See ADR 0005.
+  "jinja2>=3.1",
+  "typer>=0.13",
+]
 
 [project.optional-dependencies]
-dev = ["ruff", "mypy", "pytest", "pre-commit"]  # pin exact versions in the lockfile
+# Tooling only. Kept light so `nox -s test` works on a laptop without torch.
+dev = [
+  "ruff>=0.8",
+  "mypy>=1.13",
+  "pytest>=8.3",
+  "pytest-cov>=6.0",
+  "pytest-asyncio>=0.24",
+  "nox>=2024.10",
+  "pre-commit>=4.0",
+  "types-PyYAML>=6.0",
+]
+# Heavy ML stack. Installed inside the CUDA image, not on the host by default:
+# the provider interface plus the deterministic stub let the whole test suite
+# run without torch. See ADR 0004.
+ml = [
+  "torch>=2.5",
+  "transformers>=4.49",
+  "accelerate>=1.1",
+  "sentence-transformers>=3.3",
+  "qwen-vl-utils>=0.0.8",
+]
+# 4-bit inference kernels. Linux/CUDA only — do not add to the host install.
+ml-gpu = [
+  "autoawq>=0.2.6",
+  "bitsandbytes>=0.45; sys_platform == 'linux'",
+]
+tracking = ["mlflow>=2.19"]
 
+[project.scripts]
+maintidoc = "maintidoc.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/maintidoc"]
+
+# ----------------------------------------------------------------------- ruff
 [tool.ruff]
 line-length = 100
-src = ["src", "tests"]
+src = ["src", "tests", "eval", "scripts"]
+target-version = "py311"
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "B", "UP", "S", "T20"]
+# S = bandit (secret/injection hygiene), T20 = no stray print, UP = pyupgrade.
+select = ["E", "F", "I", "B", "UP", "S", "T20", "C4", "SIM", "RET", "ARG", "PTH"]
+ignore = [
+  "RET504",  # gratuitous assignment before return; hurts readability here
+  "ARG002",  # unused method args are normal in provider/protocol implementations
+]
 
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106", "ARG001", "ARG005", "PLR2004"]
+"eval/**" = ["T201"]
+"scripts/**" = ["T201"]
+"noxfile.py" = ["T201"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["maintidoc", "tests"]
+
+# ----------------------------------------------------------------------- mypy
 [tool.mypy]
 strict = true
 files = ["src"]
+python_version = "3.11"
+warn_unreachable = true
+show_error_codes = true
+pretty = true
 
+[[tool.mypy.overrides]]
+# Libraries without bundled type information. Each entry means mypy treats the
+# import as Any rather than failing the build; the wrappers around them in
+# src/maintidoc are still fully typed.
+module = [
+  "pymupdf.*",
+  "pytesseract.*",
+  "minio.*",
+  "mlflow.*",
+  "sentence_transformers.*",
+  "transformers.*",
+  "torch.*",
+  "qwen_vl_utils.*",
+  "awq.*",
+  "bitsandbytes.*",
+  "uvicorn.*",
+  "nox.*",
+  "streamlit.*",
+]
+ignore_missing_imports = true
+
+# --------------------------------------------------------------------- pytest
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# "." is on the path so tests can import `tests.factories` as a namespace package.
+pythonpath = ["src", "."]
+addopts = "-ra --strict-markers --strict-config"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+markers = [
+  "integration: needs live services (Qdrant/Postgres/MinIO) via docker compose",
+  "gpu: needs a CUDA device",
+  "slow: long-running; excluded from the default gate",
+]
+
+[tool.coverage.run]
+source = ["src/maintidoc"]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = ["if TYPE_CHECKING:", "raise NotImplementedError", "@overload"]

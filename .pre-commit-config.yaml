@@ -1,0 +1,46 @@
+# Revisions are maintained by `pre-commit autoupdate` (scripts/setup.sh runs it).
+#
+# Scope is deliberately narrow: formatting, repo hygiene and secret scanning.
+# The authoritative gate is `nox -s check` / `make check` (lint + mypy + pytest),
+# which CI also runs. mypy is kept out of pre-commit because it needs the full
+# dependency set installed, which would make every commit slow and
+# environment-dependent.
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+      - id: check-added-large-files
+        args: ["--maxkb=2048"]
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: detect-private-key
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.3
+    hooks:
+      - id: ruff-check
+        args: ["--fix"]
+      - id: ruff-format
+
+  # Secret scanning on every commit — AGENTS.md NEVER #1.
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.0
+    hooks:
+      - id: gitleaks
+
+  # Second line of defence behind .gitignore: blocks these files outright even if
+  # someone stages them with `git add -f`. `.env.example` is allowed on purpose.
+  - repo: local
+    hooks:
+      - id: forbid-secret-files
+        name: forbid committing .env and key material
+        entry: ".env files and private keys must never be committed (AGENTS.md NEVER #1)"
+        language: fail
+        files: '(^|/)\.env$|(^|/)\.env\.(?!example$)[^/]+$|\.pem$|\.key$|(^|/)secrets/'
