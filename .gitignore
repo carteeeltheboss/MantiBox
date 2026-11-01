@@ -61,3 +61,16 @@ Thumbs.db
 
 # --- agent scratch space: worktrees, temp previews, never project content ---
 .qwen/
+
+# --- LaTeX build artefacts (keep the .tex and the compiled .pdf) ---
+*.aux
+*.fdb_latexmk
+*.fls
+*.lof
+*.log
+*.nav
+*.out
+*.snm
+*.toc
+*.synctex.gz
+tex_MantiDoc/exitcode.txt
