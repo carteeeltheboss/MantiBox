@@ -1,8 +1,8 @@
-# 0006 — Object storage backend is undecided (MinIO unavailable)
+# 0006 — Object storage is SeaweedFS (MinIO is no longer deployable)
 
 - **Date:** 2026-11-01
-- **Status:** proposed — **awaiting a human decision**
-- **Issue/PR:** Docker stack (W1/W2)
+- **Status:** accepted
+- **Issue/PR:** Docker stack (W1/W2), #10
 
 ## Context
 SPEC §3 specifies **MinIO** for file storage. As of 2026-11-01 MinIO cannot be
@@ -34,19 +34,24 @@ ingestion, retrieval or the API, because those depend on an interface.
    is then not deployable by anyone without that access.
 
 ## Decision
-**Deferred at the user's request** until they can supply a working MinIO image
-reference. In the meantime:
+**SeaweedFS**, decided by the project owner on 2026-11-01, with the storage layer
+kept behind the `ObjectStore` interface so the backend is a configuration change
+rather than a refactor:
 
 - `storage/objects.py` defines `ObjectStore` (put/get/exists/delete/stat) with a
-  filesystem backend as the default and an S3 backend that imports its client
-  lazily;
-- nothing above the interface references a vendor, so adopting MinIO later is a
-  configuration change, not a refactor.
+  filesystem backend as the working default and an S3 backend that imports its
+  client lazily.
+- `docker compose` runs SeaweedFS and the application selects the S3 backend.
+- Nothing above the interface references a vendor, so returning to MinIO later —
+  or moving to real S3 — requires no code change.
+
+This is a deviation from SPEC §3 ("MinIO pour les fichiers") and is recorded as
+such; SPEC §3 is not edited.
 
 ## Consequences
-- Ingestion and the API can be built and tested now.
-- The compose stack ships without an object-store container until this is
-  resolved; that gap is recorded in `docs/STATUS.md`, not hidden.
-- **Must be revisited before the deployment deliverable is considered done.**
-  Whoever resolves it replaces the status with `accepted`, records the chosen
-  backend, and updates SPEC §3 or accepts a permanent deviation here.
+- Ingestion and the API are unblocked and already built against the filesystem
+  backend.
+- SPEC §3's object-store *semantics* (S3 API, files outside PostgreSQL, originals
+  preserved for the VLM) are preserved; only the vendor changes.
+- SeaweedFS must be pinned to a specific image tag when the Compose file lands.
+- Revisit if MinIO becomes deployable again and exact SPEC §3 fidelity is wanted.

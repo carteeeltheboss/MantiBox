@@ -3,8 +3,9 @@
 > Updated at the end of EVERY session by the LLM. A cold-start LLM must be able to continue from this file alone.
 
 **Last updated:** 2026-11-01 by Qwen Code
-**Current milestone:** W1 Cadrage — tooling and contracts done, pipeline in progress
-**Branch / PR state:** `main`, pushed through `bffbe9c`, nothing in flight
+**Current milestone:** W2 Ingestion et recherche — ingestion done, embeddings next
+**Branch / PR state:** `main`, pushed through `e79fcc7`, nothing in flight
+**Backlog:** GitHub issues #1–#37 exist. Closed: 1, 2, 3, 4, 8, 11, 17.
 
 ## Done
 
@@ -20,36 +21,42 @@
 - **Model drafts** (`src/maintidoc/agent/drafts.py`): lenient draft layer between raw model output and the strict API contract; a model may signal a ticket but cannot supply the content hash.
 - **Object store** (`src/maintidoc/storage/objects.py`): `ObjectStore` interface, safe filesystem backend (traversal-proof, atomic writes), lazy S3 backend. See ADR 0006.
 - **CLI** (`src/maintidoc/cli.py`): `doctor` readiness report and `version`.
-- **Corpus generator** (`scripts/generate_corpus.py`): seeded, two equipment families, one scanned document with a zero-length text layer, the SPEC §9 injection document, a restricted-group document, figure PNGs, committed manifest.
+- **Corpus generator** (`scripts/generate_corpus.py`): seeded, two equipment families, one scanned document with a zero-length text layer, the SPEC §9 injection document, a restricted-group document, figure PNGs, committed manifest. 34 documents generated (36 pages, 32 tables, 112 paragraphs). PDFs are byte-reproducible via `no_new_id`, table cells are drawn with `insert_text` after width-measuring, and a guard rejects any character the base-14 fonts cannot render.
+- **Ingestion** (`src/maintidoc/ingestion/`): `extract_pdf` produces paragraphs, tables and figures plus OCR text, each `Element` carrying the SPEC §4.1 metadata. Tables are rebuilt from their caption and the blocks beneath it because `find_tables()` detects nothing in vector-drawn tables; figure regions are inferred from the drawings above a caption; pages with no text layer are OCR'd when an engine exists and always stored as a render. Header/footer bands are dropped. 25 tests run against real generated PDFs.
+- **`doctor` CLI** (`src/maintidoc/cli.py`): device, model plan with reasons, prompt versions, corpus integrity, object-store writability, tesseract availability, service reachability.
 
-Verified: `nox -s check` green (ruff, format, mypy on 25 modules, **259 tests**), `doctor` runs.
+Verified: `nox -s check` green (ruff, format, mypy on 28 modules, **301 tests**), `doctor` runs.
 
 ## In progress
 
-- Nothing half-written. The next unit of work (ingestion) has not been started.
+- Nothing half-written. Next unit: embeddings behind provider seams (issue #12).
 
 ## Next (ordered)
 
-1. **Ingestion**: `ingestion/pdf.py` (PyMuPDF extraction: paragraphs, tables, figures, page images) + `ingestion/ocr.py` (tesseract, optional) producing `Element`s with the SPEC §4.1 metadata.
-2. **Embeddings** behind seams: BGE-M3 text, multilingual CLIP image, each with a deterministic test double.
-3. **Qdrant indexing** with the access-groups payload and access-filtered search.
-4. **RRF fusion** + reranker (base, adapted, and none — the "no reranker" arm is required by SPEC §5).
-5. **MCP server + client** implementing the contracts, with per-call authorization.
-6. **LangGraph workflow**: the SPEC §6 node sequence, budgets (3 MCP / 6 model / 60 s), citation verification, abstention logic.
-7. **FastAPI + Streamlit**: JWT auth, access filtering on every endpoint, upload limits, approval screen.
-8. **Docker Compose + Dockerfiles**: CPU baseline plus an optional `gpu` profile.
-9. **Eval harness** with seed scenarios and Recall@5 / nDCG@5 / MRR@10.
-10. **`bench-vlm`**, then update ADR 0003 with measured VRAM.
+1. **Embeddings** behind seams (#12): BGE-M3 text and multilingual CLIP image, each with a deterministic test double, then Qdrant indexing with the `access_groups` payload.
+2. **Access-filtered search** (#14): filter inside the vector query, re-verified on open.
+3. **RRF fusion + reranker arms** (#15): base, adapted and none — the "no reranker" arm is required by SPEC §5.
+4. **MCP server + client** (#22, #23) with per-call authorization.
+5. **LangGraph workflow** (#24): SPEC §6 node sequence, budgets, citation verification, abstention.
+6. **FastAPI + Streamlit** (#21).
+7. **Docker Compose** (#10, SeaweedFS per ADR 0006).
+8. **Eval harness** (#6, #30) with seed scenarios.
+9. **`bench-vlm`** (#16), then measured VRAM recorded in ADR 0003.
+10. **Threat model** (#5) and **MLflow convention** (#7).
 
 ## Blockers / waiting on human
 
-- **Object storage (SPEC §3)**: MinIO is unpullable from every public source (Docker Hub denied, quay.io and bitnami no manifest, `dl.min.io` HTTP 410). ADR 0006 is `proposed`. **Waiting for the user to supply a working MinIO image reference**, after which either SPEC §3 is satisfied or a replacement backend is chosen.
-- **No `gh` CLI** on the dev host, so `scripts/create_backlog.sh` cannot run and the backlog is not in GitHub Issues.
+- **None blocking.** Object storage is decided: **SeaweedFS**, see ADR 0006
+  (accepted). MinIO is unpullable from every public source, so SPEC §3's vendor is
+  replaced while its semantics are kept; the code talks the `ObjectStore`
+  interface either way.
+- **No `gh` CLI was on PATH** at session start; it is now installed and the
+  backlog exists in GitHub Issues.
 
 ## Open questions
 
-1. Object storage backend (ADR 0006).
-2. How the ~150-scenario eval set (SPEC §10) will be annotated — it needs human verification, so generated scenarios must be marked unverified until reviewed.
+1. How the ~150-scenario eval set (SPEC §10) will be annotated — it needs human
+   verification, so generated scenarios must be marked unverified until reviewed.
 
 ## How to run right now
 
