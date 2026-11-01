@@ -4,22 +4,33 @@
 # Then in GitHub: create a Project (board), "Add items" -> all issues, group by Milestone.
 set -euo pipefail
 
+# DRY_RUN=1 prints the exact gh commands without creating anything, so the
+# backlog can be reviewed before it becomes 34 live issues.
+DRY_RUN=${DRY_RUN:-0}
+run() {
+  if [ "$DRY_RUN" -eq 1 ]; then
+    printf 'DRY-RUN %s\n' "$*"
+  else
+    "$@"
+  fi
+}
+
 repo=$(gh repo view --json nameWithOwner -q .nameWithOwner)
 
 for l in rag mcp security eval infra data docs; do
-  gh label create "$l" --force >/dev/null
+  run gh label create "$l" --force >/dev/null
 done
 
 for m in "W1 Cadrage" "W2 Ingestion et recherche" "W3 VLM et citations" \
          "W4 Agent et MCP" "W5 Reranker et evaluation" "W6 Deploiement et soutenance"; do
-  gh api "repos/$repo/milestones" -f title="$m" >/dev/null || true
+  run gh api "repos/$repo/milestones" -f title="$m" >/dev/null || true
 done
 
 # issue "title" "milestone" "labels" "spec ref" "acceptance criteria separated by \n"
 issue() {
   local ac
   ac=$(printf '%b' "$5" | sed 's/^/- [ ] /')
-  gh issue create --title "$1" --milestone "$2" --label "$3" --body "$(cat <<BODY
+  run gh issue create --title "$1" --milestone "$2" --label "$3" --body "$(cat <<BODY
 **Spec:** $4
 
 **Acceptance criteria**
