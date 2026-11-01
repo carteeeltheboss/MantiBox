@@ -275,7 +275,8 @@
   \end{columns}
   \vspace{0.2cm}
   \centering\scriptsize
-  The system is a documentation aid. This boundary is stated in the product, the prompt and the tests --- not only in the report.
+  The system is a documentation aid. This boundary is stated in the product,\\
+  the prompt and the tests --- not only in the report.
 \end{frame}
 
 \section{Method and Planning}
@@ -452,7 +453,7 @@
   \begin{columns}[T]
     \begin{column}{0.48\textwidth}
       \begin{block}{\small Model choices}
-        \tiny
+        \tiny\raggedright
         Qwen2.5-VL-7B-Instruct in 4-bit AWQ (fixed, never substituted) · BGE-M3, 1024-d
         multilingual text · CLIP ViT-B/32 image tower paired with a multilingual text
         tower, both licence-clean.
@@ -460,7 +461,7 @@
     \end{column}
     \begin{column}{0.48\textwidth}
       \begin{block}{\small Infrastructure}
-        \tiny
+        \tiny\raggedright
         Qdrant (vectors) · PostgreSQL (metadata) · object storage behind an interface ·
         MLflow (runs) · Docker Compose, so the stack runs on a machine with no GPU.
       \end{block}
