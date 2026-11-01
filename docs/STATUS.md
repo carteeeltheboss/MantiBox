@@ -4,7 +4,7 @@
 
 **Last updated:** 2026-11-01 by Qwen Code
 **Current milestone:** W2 Ingestion et recherche — ingestion done, embeddings next
-**Branch / PR state:** `main`, pushed through `a8fb813`, nothing in flight
+**Branch / PR state:** `main`, pushed through `31685c6`, nothing in flight
 **Backlog:** GitHub issues #1–#37 exist. Closed: 1, 2, 3, 4, 8, 11, 12, 13, 14, 17.
 
 ## Done
@@ -26,9 +26,10 @@
 - **Text embeddings + Qdrant index** (`src/maintidoc/retrieval/`): `Embedder` seam with `BgeM3Embedder` (real, lazy) and a deterministic non-semantic `HashingEmbedder` that `make_embedder` refuses without an explicit opt-in, so no config can silently downgrade a semantic index. `QdrantIndex` applies the access filter *inside* the query, refuses a principal with no groups rather than sending an empty filter, uses UUIDv5 point ids so re-ingestion overwrites, and records the embedder model and index version in the payload for staleness detection.
 - **Image embeddings** (`src/maintidoc/retrieval/images.py`): ADR 0007's two-tower pairing — `clip-vit-base-patch32` for figures, the multilingual ViT-B/32 tower for French queries — behind an `ImageEmbedder` seam with a deterministic double that cannot be selected accidentally. Image vectors are 512-d, text vectors 1024-d, and mixing them raises instead of silently returning nonsense.
 - **Document/file access on open** (`src/maintidoc/retrieval/access.py`): `DocumentOpener` denies **before** fetching bytes, treats an unknown document as denied rather than not-found (no enumeration oracle), and binds image keys to their document so a permitted id cannot borrow a restricted document's figure. Catalogs build from the corpus manifest.
+- **Model weights prefetched and verified** (`models/`, git-ignored): 17.58 GB across BGE-M3 (4.52), multilingual CLIP text tower (4.90), CLIP ViT-B/32 image tower (1.69) and Qwen2.5-VL-7B-AWQ (6.46, confirmed AWQ 4-bit, 2/2 shards). Fetched with `hf download --local-dir` because the HF cache deadlocks on Windows without Developer Mode. Installed `torch 2.15.0+cpu`, `transformers 5.22.1`, `sentence-transformers 6.2.0` and **loaded them for real**: BGE-M3 1024-d with a related passage at 0.8492 vs unrelated 0.4592; CLIP 512-d with identical figures at 1.0000 vs different at 0.8160. See ADR 0007 for the measured cross-modal weakness.
 - **`doctor` CLI** (`src/maintidoc/cli.py`): device, model plan with reasons, prompt versions, corpus integrity, object-store writability, tesseract availability, service reachability.
 
-Verified: `nox -s check` green (ruff, format, mypy on 32 modules); **409 tests** including 41 integration tests against a live `qdrant/qdrant:v1.20.0`. `doctor` runs.
+Verified: `nox -s check` green (ruff, format, mypy on 32 modules, 372 fast tests); **413 tests** including 41 integration tests against a live `qdrant/qdrant:v1.20.0`. `doctor` runs.
 
 ## In progress
 
@@ -79,8 +80,8 @@ Linux / CI / containers: `make check`, `make doctor`, `make corpus`.
 
 Be honest about these — none of them have been exercised:
 
-- **BGE-M3 and CLIP weights have never been loaded.** Weight downloads are deferred, so the index is proven with the deterministic hashing double. Ordering, access filtering and payload shape are verified; **semantic retrieval quality is not**, and any Recall@5 computed with the double would be meaningless.
-- **The Qwen2.5-VL 7B has never been loaded.** `vlm/qwen.py` does not exist yet. Every VRAM figure in ADR 0003 is an *estimate*; the measurement SPEC §11 requires has not been taken.
+- **BGE-M3 and both CLIP towers ARE loaded and semantically verified** (see Done). Two caveats remain: the index/pipeline integration tests still use the deterministic doubles for speed, so retrieval *quality* end-to-end is not measured yet; and text→image alignment is weak on this corpus — the wrong panel scored higher (0.2991 vs 0.2691), per ADR 0007. Image→image retrieval is sound.
+- **The Qwen2.5-VL 7B has never been loaded.** The weights are on disk, but `vlm/qwen.py` does not exist and the installed torch is a **CPU-only build** — so the 7B is blocked on a CUDA torch, `autoawq`, and the VRAM measurement in ADR 0003.
 - **No OCR has ever run.** tesseract is not on the Windows host and no image has been built.
 - **No integration test has run against PostgreSQL or an object store.** Qdrant
   is covered (32 tests); Postgres and S3 are not.

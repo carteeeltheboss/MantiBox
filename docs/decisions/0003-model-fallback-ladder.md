@@ -74,3 +74,23 @@ default (`MAINTIDOC_ALLOW_MODEL_FALLBACK=false`):
 Consequence: on hardware where the 7B genuinely cannot fit, the correct outcome
 is a clear failure, not a working 3B. That is the owner's call and is recorded
 here rather than being quietly overridden by a default.
+
+## Amendment 2 — `usable` distinguishes hardware from a runtime that can drive it
+
+Found by executing the stack: `detect_devices` listed the RTX 4070 because
+`nvidia-smi` reports it, even though the installed torch was a **CPU-only
+build**. `select_device("auto")` therefore returned `cuda`, and the first tensor
+move failed with *"Torch not compiled with CUDA enabled"*.
+
+`DeviceInfo.usable` now records whether the *installed runtime* can execute on a
+device:
+
+- CUDA found only through `nvidia-smi` (torch absent, or a CPU-only build) is
+  reported by `doctor` with `usable=false` and is never selected;
+- `select_device` skips unusable devices, so `auto` lands on CPU instead of
+  failing at the first tensor;
+- pinning `cuda` on unusable hardware still raises, and now says `unusable` so
+  the cause is obvious.
+
+This matters for #16: the 7B cannot run on a CPU-only torch regardless of VRAM,
+so the GPU path needs a CUDA build of torch, not just free memory.

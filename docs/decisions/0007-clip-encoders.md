@@ -55,3 +55,30 @@ Consequence for configuration: one model id cannot express two towers, so
   session without reliable internet can still load them.
 - Revisit if a permissively licensed multilingual CLIP at comparable quality
   appears, or if the project is ever allowed non-commercial assets.
+
+## Measured after loading the real weights
+
+Run on 2026-11-01 with the prefetched local directories, CPU torch:
+
+| Check | Result |
+|---|---|
+| image tower output | 512-d, as expected |
+| identical figure vs itself | cosine 1.0000 |
+| pump panel vs cabinet panel | cosine 0.8160 |
+| query *"voyant orange alarme de température"* vs **pump** panel | cosine **0.2691** |
+| query *"voyant orange alarme de température"* vs **cabinet** panel | cosine **0.2991** |
+
+The last two rows are the important, uncomfortable finding: **cross-modal
+text→image alignment is weak on this corpus, and the wrong panel scores
+higher.** These are synthetic panels drawn as flat vector shapes, which is a
+long way from the photographs a CLIP image tower is trained on, so a weak match
+is expected — but it means visual retrieval quality on this corpus cannot be
+claimed from CLIP similarity alone.
+
+Consequences to carry into the eval (#15, #30):
+- image→image retrieval is usable (a figure matches itself far more strongly than
+  another);
+- text→image retrieval must be measured, not assumed, and the eval must report it
+  separately rather than folding it into a single Recall figure;
+- the VLM reading the actual figure (SPEC §8) remains the primary path for
+  interpreting an image, with CLIP used for candidate retrieval only.
