@@ -86,7 +86,7 @@ Be honest about these — none of them have been exercised:
 - **No Docker image or compose file exists yet.**
 - **CI has never executed** on GitHub.
 - `nox -s ingest`, `-s eval` and `-s bench_vlm` reference modules that do not exist yet; those sessions currently fail by design.
-- The corpus has only been generated at `--count 8` for a smoke test. The default of 34 has not been produced or verified.
+- The corpus is generated at the full 34 documents, but nothing has been **ingested** into the index yet: no end-to-end run has loaded the corpus, embedded it and searched it.
 - No fine-tuning work started (SPEC §5); no reranker dataset exists.
 
 ## Pointers
