@@ -92,3 +92,15 @@ class CitationVerificationError(MaintiDocError):
 
     code = "citation_invalid"
     http_status = 500
+
+
+class IngestionError(MaintiDocError):
+    """A document could not be parsed into elements.
+
+    Raised for a corrupt or unsupported PDF, never for a document that simply
+    yields no text - that is reported as a warning on `ExtractionResult` so a
+    scanned document is not mistaken for a failure.
+    """
+
+    code = "ingestion_failed"
+    http_status = 500

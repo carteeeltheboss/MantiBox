@@ -113,7 +113,9 @@ pretty = true
 # import as Any rather than failing the build; the wrappers around them in
 # src/maintidoc are still fully typed.
 module = [
-  "pymupdf.*",
+  # NOTE: pymupdf is deliberately absent here — it ships py.typed, so mypy uses
+  # its real annotations. Masking them with ignore_missing_imports hid genuine
+  # type errors in ingestion.
   "pytesseract.*",
   "minio.*",
   "mlflow.*",
@@ -128,6 +130,14 @@ module = [
   "streamlit.*",
 ]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# PyMuPDF ships py.typed, but leaves several core methods unannotated
+# (get_text, load_page, Rect, Document, close). Rather than sprinkle six
+# type: ignore comments through the extractor, relax exactly this rule for the
+# single module that calls them. Every other rule stays strict.
+module = ["maintidoc.ingestion.pdf"]
+disallow_untyped_calls = false
 
 # --------------------------------------------------------------------- pytest
 [tool.pytest.ini_options]
