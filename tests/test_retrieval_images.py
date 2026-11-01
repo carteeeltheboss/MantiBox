@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import base64
 import math
+from pathlib import Path
 
 import pytest
 
@@ -104,15 +105,16 @@ class TestClipImageEmbedder:
         assert embedder.embed_images([]) == []
         assert embedder._image_model is None
 
-    def test_missing_ml_extra_raises_for_images(self) -> None:
-        """transformers is in the optional 'ml' extra; this must fail loudly
-        rather than hash silently."""
-        with pytest.raises(ConfigurationError, match="transformers is not installed"):
-            ClipImageEmbedder().embed_images([REAL_PNG])
+    def test_unloadable_image_tower_raises(self, tmp_path: Path) -> None:
+        """Environment-independent: with the 'ml' extra absent the import fails,
+        with it present the load fails. Both raise ConfigurationError, and an
+        empty local directory means this can never become a network request."""
+        with pytest.raises(ConfigurationError):
+            ClipImageEmbedder(str(tmp_path), str(tmp_path)).embed_images([REAL_PNG])
 
-    def test_missing_ml_extra_raises_for_text(self) -> None:
-        with pytest.raises(ConfigurationError, match="sentence-transformers is not installed"):
-            ClipImageEmbedder().embed_text("voyant orange")
+    def test_unloadable_text_tower_raises(self, tmp_path: Path) -> None:
+        with pytest.raises(ConfigurationError):
+            ClipImageEmbedder(str(tmp_path), str(tmp_path)).embed_text("voyant orange")
 
     def test_undecodable_image_raises_before_loading(self) -> None:
         with pytest.raises(ConfigurationError, match="could not be decoded"):
@@ -133,7 +135,6 @@ class TestFactory:
         assert isinstance(make_image_embedder(backend="auto"), ClipImageEmbedder)
 
     def test_auto_does_not_fall_back_to_hashing(self) -> None:
-        embedder = make_image_embedder(backend="auto")
-        assert embedder.semantic is True
-        with pytest.raises(ConfigurationError):
-            embedder.embed_images([PNG])
+        """No embedding call here: with the 'ml' extra installed it would reach
+        the network, and a test must never do that."""
+        assert make_image_embedder(backend="auto").semantic is True

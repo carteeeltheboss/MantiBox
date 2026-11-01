@@ -85,6 +85,14 @@ class DeviceInfo:
     free_vram_gb: float | None = None
     #: False when torch is not installed, i.e. detection used nvidia-smi only.
     torch_visible: bool = False
+    #: Can the *installed* runtime actually execute on this device?
+    #:
+    #: Hardware existing is not the same as torch being able to drive it: a
+    #: CUDA-capable GPU plus a CPU-only torch build looks present but raises
+    #: "Torch not compiled with CUDA enabled" the moment you move a tensor to it.
+    #: Selection must therefore skip unusable devices while `doctor` still
+    #: reports them, so the hardware is visible without being chosen.
+    usable: bool = True
 
     @property
     def usable_vram_gb(self) -> float | None:
@@ -98,6 +106,7 @@ class DeviceInfo:
             "total_vram_gb": self.total_vram_gb,
             "free_vram_gb": self.free_vram_gb,
             "torch_visible": self.torch_visible,
+            "usable": self.usable,
         }
 
 
@@ -274,6 +283,10 @@ def detect_devices() -> tuple[DeviceInfo, ...]:
                     total_vram_gb=total,
                     free_vram_gb=free,
                     torch_visible=torch_installed,
+                    # Reached only when torch cannot drive CUDA: either torch is
+                    # absent or it is a CPU-only build. The hardware exists, so
+                    # report it, but never select it.
+                    usable=False,
                 )
             )
 
@@ -289,18 +302,22 @@ def select_device(
     """Pick a device honouring `preference` (auto | cuda | mps | cpu).
 
     An explicit preference that cannot be satisfied is an error, not a silent
-    substitution: if you pinned CUDA you want to know CUDA is missing.
+    substitution: if you pinned CUDA you want to know CUDA is missing. Devices
+    the installed runtime cannot execute on are skipped - a CUDA GPU next to a
+    CPU-only torch build is visible to `doctor` but must never be selected.
     """
     available = devices if devices is not None else detect_devices()
+    runnable = tuple(device for device in available if device.usable) or (available[-1],)
+
     if preference == "auto":
-        return available[0]
+        return runnable[0]
 
     wanted = DeviceKind(preference)
-    for device in available:
+    for device in runnable:
         if device.kind is wanted:
             return device
 
-    present = ", ".join(d.kind.value for d in available)
+    present = ", ".join(f"{d.kind.value}{'' if d.usable else ' (unusable)'}" for d in available)
     msg = f"requested device '{preference}' is not available; detected: {present}"
     raise RuntimeError(msg)
 

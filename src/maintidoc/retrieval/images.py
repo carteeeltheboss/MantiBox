@@ -167,7 +167,12 @@ class ClipImageEmbedder:
         with torch.no_grad():
             inputs = processor(images=images, return_tensors="pt")
             inputs = {key: value.to(device) for key, value in inputs.items()}
-            features = model.get_image_features(**inputs)
+            output = model.get_image_features(**inputs)
+            # transformers >=5 returns a BaseModelOutputWithPooling here rather
+            # than a tensor; the 512-d embedding is on .pooler_output. getattr
+            # keeps this working on 4.x too, where the call already returns the
+            # tensor. Verified against transformers 5.22.
+            features = getattr(output, "pooler_output", output)
             features = features / features.norm(dim=-1, keepdim=True)
 
         vectors: list[list[float]] = [
@@ -230,8 +235,15 @@ class ClipImageEmbedder:
                     ) from exc
 
                 device = self._resolve_device()
-                model = CLIPModel.from_pretrained(self._image_model_id)
-                processor = CLIPProcessor.from_pretrained(self._image_model_id)
+                try:
+                    model = CLIPModel.from_pretrained(self._image_model_id)
+                    processor = CLIPProcessor.from_pretrained(self._image_model_id)
+                except Exception as exc:
+                    # Unloadable model must be a typed error, not a Hub traceback.
+                    raise ConfigurationError(
+                        f"could not load CLIP image tower {self._image_model_id!r}: "
+                        f"{exc.__class__.__name__}"
+                    ) from exc
                 self._image_model = model.to(device).eval()
                 self._processor = processor
                 logger.info("loaded CLIP image tower %s on %s", self._image_model_id, device)
@@ -249,7 +261,13 @@ class ClipImageEmbedder:
                     ) from exc
 
                 device = self._resolve_device()
-                self._text_model = SentenceTransformer(self._text_model_id, device=device)
+                try:
+                    self._text_model = SentenceTransformer(self._text_model_id, device=device)
+                except Exception as exc:
+                    raise ConfigurationError(
+                        f"could not load CLIP text tower {self._text_model_id!r}: "
+                        f"{exc.__class__.__name__}"
+                    ) from exc
                 logger.info("loaded CLIP text tower %s on %s", self._text_model_id, device)
         return self._text_model
 

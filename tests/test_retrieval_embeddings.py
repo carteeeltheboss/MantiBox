@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from pathlib import Path
 
 import pytest
 
@@ -90,11 +91,14 @@ class TestBgeM3Embedder:
         embedder = BgeM3Embedder()
         assert embedder._model is None
 
-    def test_missing_ml_extra_raises_rather_than_degrading(self) -> None:
-        """sentence-transformers is in the optional 'ml' extra and is not
-        installed here, so this must fail loudly instead of hashing silently."""
-        with pytest.raises(ConfigurationError, match="sentence-transformers is not installed"):
-            BgeM3Embedder().embed_query("voyant orange")
+    def test_unloadable_model_raises_rather_than_degrading(self, tmp_path: Path) -> None:
+        """Whether or not the 'ml' extra is installed, an unloadable model must
+        raise a typed error instead of silently hashing. An empty local directory
+        is used so this can never become a network request: with the extra absent
+        the import fails, with it present the load fails, and both paths raise
+        ConfigurationError."""
+        with pytest.raises(ConfigurationError):
+            BgeM3Embedder(str(tmp_path)).embed_query("voyant orange")
 
     def test_empty_batch_does_not_load_the_model(self) -> None:
         embedder = BgeM3Embedder()
@@ -118,7 +122,6 @@ class TestFactory:
         assert isinstance(make_embedder(backend="auto"), BgeM3Embedder)
 
     def test_auto_does_not_fall_back_to_hashing(self) -> None:
-        embedder = make_embedder(backend="auto")
-        assert embedder.semantic is True
-        with pytest.raises(ConfigurationError):
-            embedder.embed_query("x")
+        """No embedding call here: with the 'ml' extra installed it would hit the
+        network, and a test must never do that."""
+        assert make_embedder(backend="auto").semantic is True

@@ -148,6 +148,49 @@ class TestSelectDevice:
             select_device("tpu", devices=(CPU_ONLY,))
 
 
+class TestUnusableDevices:
+    """A GPU that the installed torch cannot drive must never be selected.
+
+    Regression: a CPU-only torch build plus an nvidia-smi-visible GPU made
+    `select_device("auto")` return cuda, and the first tensor move raised
+    'Torch not compiled with CUDA enabled'.
+    """
+
+    def unusable_gpu(self) -> DeviceInfo:
+        return DeviceInfo(
+            kind=DeviceKind.CUDA,
+            name="NVIDIA GeForce RTX 4070 Laptop GPU",
+            index=0,
+            total_vram_gb=8.0,
+            free_vram_gb=5.0,
+            torch_visible=True,
+            usable=False,
+        )
+
+    def test_auto_skips_an_unusable_gpu(self) -> None:
+        devices = (self.unusable_gpu(), CPU_ONLY)
+        assert select_device("auto", devices=devices).kind is DeviceKind.CPU
+
+    def test_explicit_cuda_on_an_unusable_gpu_raises(self) -> None:
+        devices = (self.unusable_gpu(), CPU_ONLY)
+        with pytest.raises(RuntimeError, match="unusable"):
+            select_device("cuda", devices=devices)
+
+    def test_usable_flag_is_reported(self) -> None:
+        assert self.unusable_gpu().as_dict()["usable"] is False
+        assert gpu(6.0).as_dict()["usable"] is True
+
+    def test_detected_cuda_is_marked_unusable_when_torch_cannot_use_it(self) -> None:
+        """On this machine torch is a CPU build, so any detected CUDA device is
+        present-but-unusable and auto must land on CPU."""
+        devices = detect_devices()
+        cuda = [d for d in devices if d.kind is DeviceKind.CUDA]
+        if not cuda:
+            pytest.skip("no CUDA hardware reported here")
+        assert all(d.usable is False for d in cuda)
+        assert select_device("auto").kind is DeviceKind.CPU
+
+
 class TestResolveModelFits:
     def test_requested_model_is_kept_when_it_fits(self) -> None:
         resolved = resolve_model(

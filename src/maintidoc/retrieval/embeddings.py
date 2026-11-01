@@ -193,7 +193,16 @@ class BgeM3Embedder:
                     ) from exc
 
                 device = self._resolve_device()
-                self._model = SentenceTransformer(self._model_id, device=device)
+                try:
+                    self._model = SentenceTransformer(self._model_id, device=device)
+                except Exception as exc:
+                    # A missing, corrupt or unresolvable model must be a typed
+                    # error, not a raw OSError or a Hub traceback. The message
+                    # carries only the exception class, never a path with data.
+                    raise ConfigurationError(
+                        f"could not load embedding model {self._model_id!r} on {device}: "
+                        f"{exc.__class__.__name__}"
+                    ) from exc
         return self._model
 
     def _resolve_device(self) -> str:
