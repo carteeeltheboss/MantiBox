@@ -4,8 +4,8 @@
 
 **Last updated:** 2026-11-01 by Qwen Code
 **Current milestone:** W2 Ingestion et recherche — ingestion done, embeddings next
-**Branch / PR state:** `main`, pushed through `e79fcc7`, nothing in flight
-**Backlog:** GitHub issues #1–#37 exist. Closed: 1, 2, 3, 4, 8, 11, 17.
+**Branch / PR state:** `main`, pushed through `fde3c2f`, nothing in flight
+**Backlog:** GitHub issues #1–#37 exist. Closed: 1, 2, 3, 4, 8, 11, 12, 17.
 
 ## Done
 
@@ -23,26 +23,28 @@
 - **CLI** (`src/maintidoc/cli.py`): `doctor` readiness report and `version`.
 - **Corpus generator** (`scripts/generate_corpus.py`): seeded, two equipment families, one scanned document with a zero-length text layer, the SPEC §9 injection document, a restricted-group document, figure PNGs, committed manifest. 34 documents generated (36 pages, 32 tables, 112 paragraphs). PDFs are byte-reproducible via `no_new_id`, table cells are drawn with `insert_text` after width-measuring, and a guard rejects any character the base-14 fonts cannot render.
 - **Ingestion** (`src/maintidoc/ingestion/`): `extract_pdf` produces paragraphs, tables and figures plus OCR text, each `Element` carrying the SPEC §4.1 metadata. Tables are rebuilt from their caption and the blocks beneath it because `find_tables()` detects nothing in vector-drawn tables; figure regions are inferred from the drawings above a caption; pages with no text layer are OCR'd when an engine exists and always stored as a render. Header/footer bands are dropped. 25 tests run against real generated PDFs.
+- **Text embeddings + Qdrant index** (`src/maintidoc/retrieval/`): `Embedder` seam with `BgeM3Embedder` (real, lazy) and a deterministic non-semantic `HashingEmbedder` that `make_embedder` refuses without an explicit opt-in, so no config can silently downgrade a semantic index. `QdrantIndex` applies the access filter *inside* the query, refuses a principal with no groups rather than sending an empty filter, uses UUIDv5 point ids so re-ingestion overwrites, and records the embedder model and index version in the payload for staleness detection.
 - **`doctor` CLI** (`src/maintidoc/cli.py`): device, model plan with reasons, prompt versions, corpus integrity, object-store writability, tesseract availability, service reachability.
 
-Verified: `nox -s check` green (ruff, format, mypy on 28 modules, **301 tests**), `doctor` runs.
+Verified: `nox -s check` green (ruff, format, mypy on 30 modules, **323 fast tests**); **355 tests** including 32 integration tests against a live `qdrant/qdrant:v1.20.0`. `doctor` runs.
 
 ## In progress
 
-- Nothing half-written. Next unit: embeddings behind provider seams (issue #12).
+- Nothing half-written. Next unit: visual embeddings + image index (issue #13).
 
 ## Next (ordered)
 
-1. **Embeddings** behind seams (#12): BGE-M3 text and multilingual CLIP image, each with a deterministic test double, then Qdrant indexing with the `access_groups` payload.
-2. **Access-filtered search** (#14): filter inside the vector query, re-verified on open.
+1. **Visual embeddings + image index** (#13): multilingual CLIP behind the same seam, indexing the rendered figure PNGs.
+2. **Access-filtered retrieval end to end** (#14): filter inside the query, re-verified on open, with a no-cross-group-leak test over real corpus documents.
 3. **RRF fusion + reranker arms** (#15): base, adapted and none — the "no reranker" arm is required by SPEC §5.
-4. **MCP server + client** (#22, #23) with per-call authorization.
-5. **LangGraph workflow** (#24): SPEC §6 node sequence, budgets, citation verification, abstention.
-6. **FastAPI + Streamlit** (#21).
-7. **Docker Compose** (#10, SeaweedFS per ADR 0006).
-8. **Eval harness** (#6, #30) with seed scenarios.
-9. **`bench-vlm`** (#16), then measured VRAM recorded in ADR 0003.
-10. **Threat model** (#5) and **MLflow convention** (#7).
+4. **Vertical slice** (#9): question → retrieve → cited answer through the stub VLM.
+5. **MCP server + client** (#22, #23) with per-call authorization.
+6. **LangGraph workflow** (#24): SPEC §6 node sequence, budgets, citation verification, abstention.
+7. **FastAPI + Streamlit** (#21).
+8. **Docker Compose** (#10, SeaweedFS per ADR 0006).
+9. **Eval harness** (#6, #30) with seed scenarios.
+10. **`bench-vlm`** (#16), then measured VRAM recorded in ADR 0003.
+11. **Threat model** (#5) and **MLflow convention** (#7).
 
 ## Blockers / waiting on human
 
@@ -76,9 +78,11 @@ Linux / CI / containers: `make check`, `make doctor`, `make corpus`.
 
 Be honest about these — none of them have been exercised:
 
+- **BGE-M3 and CLIP weights have never been loaded.** Weight downloads are deferred, so the index is proven with the deterministic hashing double. Ordering, access filtering and payload shape are verified; **semantic retrieval quality is not**, and any Recall@5 computed with the double would be meaningless.
 - **The Qwen2.5-VL 7B has never been loaded.** `vlm/qwen.py` does not exist yet. Every VRAM figure in ADR 0003 is an *estimate*; the measurement SPEC §11 requires has not been taken.
 - **No OCR has ever run.** tesseract is not on the Windows host and no image has been built.
-- **No integration test has run** against real Qdrant, PostgreSQL or an object store.
+- **No integration test has run against PostgreSQL or an object store.** Qdrant
+  is covered (32 tests); Postgres and S3 are not.
 - **No Docker image or compose file exists yet.**
 - **CI has never executed** on GitHub.
 - `nox -s ingest`, `-s eval` and `-s bench_vlm` reference modules that do not exist yet; those sessions currently fail by design.
