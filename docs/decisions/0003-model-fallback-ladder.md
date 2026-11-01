@@ -52,3 +52,25 @@ estimate.
   7B-AWQ estimated 6.3 GB (does not fit), 3B-AWQ estimated 3.7 GB (fits).
 - Revisit when the benchmark has run on real hardware, and if a 24 GB target
   machine becomes available.
+
+## Amendment — substitution is disabled by default (owner decision)
+
+The original decision above allowed the ladder to step down 7B -> 3B -> CPU
+automatically. The project owner subsequently ruled that **Qwen2.5-VL-7B is the
+model and a smaller one must never be substituted**: if the 7B does not fit, the
+system reports the situation and waits for a human instead of serving something
+else.
+
+So the ladder is retained as a *mechanism* but its fallback is now off by
+default (`MAINTIDOC_ALLOW_MODEL_FALLBACK=false`):
+
+- `resolve_model` still computes whether the 7B fits and still records the full
+  audit trail, so `doctor` explains exactly why a load would fail.
+- With fallback disabled it returns the requested model with `degraded=True`
+  rather than a different model, and the caller must decide: attempt the load
+  with AWQ plus tight `max_new_tokens` / `max_pixels`, or stop.
+- Stepping down is now an explicit, recorded deviation, never a default.
+
+Consequence: on hardware where the 7B genuinely cannot fit, the correct outcome
+is a clear failure, not a working 3B. That is the owner's call and is recorded
+here rather than being quietly overridden by a default.
