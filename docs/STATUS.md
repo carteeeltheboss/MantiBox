@@ -4,8 +4,8 @@
 
 **Last updated:** 2026-11-01 by Qwen Code
 **Current milestone:** W2 Ingestion et recherche — ingestion done, embeddings next
-**Branch / PR state:** `main`, pushed through `fde3c2f`, nothing in flight
-**Backlog:** GitHub issues #1–#37 exist. Closed: 1, 2, 3, 4, 8, 11, 12, 17.
+**Branch / PR state:** `main`, pushed through `26afcd7`, nothing in flight
+**Backlog:** GitHub issues #1–#37 exist. Closed: 1, 2, 3, 4, 8, 11, 12, 13, 17.
 
 ## Done
 
@@ -24,26 +24,27 @@
 - **Corpus generator** (`scripts/generate_corpus.py`): seeded, two equipment families, one scanned document with a zero-length text layer, the SPEC §9 injection document, a restricted-group document, figure PNGs, committed manifest. 34 documents generated (36 pages, 32 tables, 112 paragraphs). PDFs are byte-reproducible via `no_new_id`, table cells are drawn with `insert_text` after width-measuring, and a guard rejects any character the base-14 fonts cannot render.
 - **Ingestion** (`src/maintidoc/ingestion/`): `extract_pdf` produces paragraphs, tables and figures plus OCR text, each `Element` carrying the SPEC §4.1 metadata. Tables are rebuilt from their caption and the blocks beneath it because `find_tables()` detects nothing in vector-drawn tables; figure regions are inferred from the drawings above a caption; pages with no text layer are OCR'd when an engine exists and always stored as a render. Header/footer bands are dropped. 25 tests run against real generated PDFs.
 - **Text embeddings + Qdrant index** (`src/maintidoc/retrieval/`): `Embedder` seam with `BgeM3Embedder` (real, lazy) and a deterministic non-semantic `HashingEmbedder` that `make_embedder` refuses without an explicit opt-in, so no config can silently downgrade a semantic index. `QdrantIndex` applies the access filter *inside* the query, refuses a principal with no groups rather than sending an empty filter, uses UUIDv5 point ids so re-ingestion overwrites, and records the embedder model and index version in the payload for staleness detection.
+- **Image embeddings** (`src/maintidoc/retrieval/images.py`): ADR 0007's two-tower pairing — `clip-vit-base-patch32` for figures, the multilingual ViT-B/32 tower for French queries — behind an `ImageEmbedder` seam with a deterministic double that cannot be selected accidentally. Image vectors are 512-d, text vectors 1024-d, and mixing them raises instead of silently returning nonsense.
 - **`doctor` CLI** (`src/maintidoc/cli.py`): device, model plan with reasons, prompt versions, corpus integrity, object-store writability, tesseract availability, service reachability.
 
-Verified: `nox -s check` green (ruff, format, mypy on 30 modules, **323 fast tests**); **355 tests** including 32 integration tests against a live `qdrant/qdrant:v1.20.0`. `doctor` runs.
+Verified: `nox -s check` green (ruff, format, mypy on 31 modules, **fast suite**); **387 tests** including 41 integration tests against a live `qdrant/qdrant:v1.20.0`. `doctor` runs.
 
 ## In progress
 
-- Nothing half-written. Next unit: visual embeddings + image index (issue #13).
+- Nothing half-written. Next unit: access-filtered retrieval end to end (issue #14).
 
 ## Next (ordered)
 
-1. **Visual embeddings + image index** (#13): multilingual CLIP behind the same seam, indexing the rendered figure PNGs.
-2. **Access-filtered retrieval end to end** (#14): filter inside the query, re-verified on open, with a no-cross-group-leak test over real corpus documents.
-3. **RRF fusion + reranker arms** (#15): base, adapted and none — the "no reranker" arm is required by SPEC §5.
-4. **Vertical slice** (#9): question → retrieve → cited answer through the stub VLM.
-5. **MCP server + client** (#22, #23) with per-call authorization.
-6. **LangGraph workflow** (#24): SPEC §6 node sequence, budgets, citation verification, abstention.
-7. **FastAPI + Streamlit** (#21).
-8. **Docker Compose** (#10, SeaweedFS per ADR 0006).
-9. **Eval harness** (#6, #30) with seed scenarios.
-10. **`bench-vlm`** (#16), then measured VRAM recorded in ADR 0003.
+1. **Access-filtered retrieval end to end** (#14): filter inside the query, re-verified on open, with a no-cross-group-leak test over real corpus documents.
+2. **RRF fusion + reranker arms** (#15): base, adapted and none — the "no reranker" arm is required by SPEC §5.
+3. **Vertical slice** (#9): question → retrieve → cited answer through the stub VLM.
+4. **MCP server + client** (#22, #23) with per-call authorization.
+5. **LangGraph workflow** (#24): SPEC §6 node sequence, budgets, citation verification, abstention.
+6. **FastAPI + Streamlit** (#21).
+7. **Docker Compose** (#10, SeaweedFS per ADR 0006).
+8. **Eval harness** (#6, #30) with seed scenarios.
+9. **`bench-vlm`** (#16), then measured VRAM recorded in ADR 0003.
+10. **Install the `ml` extra** and verify the real BGE-M3 and CLIP towers load and align, replacing the doubles in the integration tests.
 11. **Threat model** (#5) and **MLflow convention** (#7).
 
 ## Blockers / waiting on human
