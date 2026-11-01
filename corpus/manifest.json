@@ -1,0 +1,715 @@
+{
+  "corpus_version": "1.0.0",
+  "generated_by": "scripts/generate_corpus.py",
+  "seed": 20261101,
+  "spec_reference": "SPEC §2 - 30 à 50 documents autorisés, deux familles d'équipements",
+  "document_count": 34,
+  "equipment_families": [
+    "armoires",
+    "pompes"
+  ],
+  "totals": {
+    "pages": 36,
+    "figures": 3,
+    "tables": 32,
+    "paragraphs": 112
+  },
+  "injection_document": "note_diffusion_pompe_a",
+  "scanned_documents": [
+    "fiche_scanner_pompe_a"
+  ],
+  "restricted_documents": [
+    "manuel_pompe_a_restreint"
+  ],
+  "license_log": {
+    "note": "Document synthétique généré par scripts/generate_corpus.py. Aucune source tierce, aucune donnée personnelle.",
+    "personal_data": "none - all users, equipment and tickets are fictional"
+  },
+  "documents": [
+    {
+      "document_id": "manuel_pompe_a",
+      "version": "2024-03",
+      "title": "Manuel technique - groupe de pompage centrifuge",
+      "equipment_family": "pompes",
+      "access_groups": [
+        "maintenance",
+        "site_a"
+      ],
+      "object_key": "documents/manuel_pompe_a.pdf",
+      "sha256": "45329552637a209626c280bbe9bf4038378d13aa01d1595f703a32f401ab6e2f",
+      "language": "fr",
+      "page_count": 2,
+      "synthetic": true,
+      "license_note": "Document synthétique généré par scripts/generate_corpus.py. Aucune source tierce, aucune donnée personnelle.",
+      "scanned": false,
+      "contains_injection": false,
+      "restricted": false,
+      "figure_ids": [
+        "figure_1_3"
+      ]
+    },
+    {
+      "document_id": "manuel_pompe_a_restreint",
+      "version": "2024-03",
+      "title": "Manuel technique restreint - groupe de pompage",
+      "equipment_family": "pompes",
+      "access_groups": [
+        "supervisors"
+      ],
+      "object_key": "documents/manuel_pompe_a_restreint.pdf",
+      "sha256": "119c27ea2b6de332f8507bf59d6c0e1aaef2d5871750cbe293d7fdb1f57ef642",
+      "language": "fr",
+      "page_count": 2,
+      "synthetic": true,
+      "license_note": "Document synthétique généré par scripts/generate_corpus.py. Aucune source tierce, aucune donnée personnelle.",
+      "scanned": false,
+      "contains_injection": false,
+      "restricted": true,
+      "figure_ids": [
+        "figure_2_3"
+      ]
+    },
+    {
+      "document_id": "procedure_pompe_a",
+      "version": "2024-03",
+      "title": "Procédure d'intervention - alarme température groupe de pompage",
+      "equipment_family": "pompes",
+      "access_groups": [
+        "maintenance",
+        "site_a"
+      ],
+      "object_key": "documents/procedure_pompe_a.pdf",
+      "sha256": "c599832aa0c79c3a2b54110cb721f4630cf6e09b0af54125647e3ce7c04a33e3",
+      "language": "fr",
+      "page_count": 1,
+      "synthetic": true,
+      "license_note": "Document synthétique généré par scripts/generate_corpus.py. Aucune source tierce, aucune donnée personnelle.",
+      "scanned": false,
+      "contains_injection": false,
+      "restricted": false,
+      "figure_ids": []
+    },
+    {
+      "document_id": "manuel_armoire_c",
+      "version": "2024-03",
+      "title": "Manuel technique - armoire de commande électrique",
+      "equipment_family": "armoires",
+      "access_groups": [
+        "maintenance",
+        "site_b"
+      ],
+      "object_key": "documents/manuel_armoire_c.pdf",
+      "sha256": "8be948d473fc947d6d66fa7d2ee321f0e4e793019272965d2578a4a9b1b45d34",
+      "language": "fr",
+      "page_count": 1,
+      "synthetic": true,
+      "license_note": "Document synthétique généré par scripts/generate_corpus.py. Aucune source tierce, aucune donnée personnelle.",
+      "scanned": false,
+      "contains_injection": false,
+      "restricted": false,
+      "figure_ids": [
+        "figure_1_2"
+      ]
+    },
+    {
+      "document_id": "fiche_scanner_pompe_a",
+      "version": "2024-03",
+      "title": "Fiche d'intervention scannée - relevé trimestriel groupe de pompage",
+      "equipment_family": "pompes",
+      "access_groups": [
+        "maintenance",
+        "site_a"
+      ],
+      "object_key": "documents/fiche_scanner_pompe_a.pdf",
+      "sha256": "6795a3e9a26b116a5a4bd30194f5ec74826a22a5d2b6724374456940da3b4931",
+      "language": "fr",
+      "page_count": 1,
+      "synthetic": true,
+      "license_note": "Document synthétique généré par scripts/generate_corpus.py. Aucune source tierce, aucune donnée personnelle.",
+      "scanned": true,
+      "contains_injection": false,
+      "restricted": false,
+      "figure_ids": []
+    },
+    {
+      "document_id": "note_diffusion_pompe_a",
+      "version": "2024-03",
+      "title": "Note de service - diffusion des rapports d'intervention",
+      "equipment_family": "pompes",
+      "access_groups": [
+        "maintenance",
+        "site_a"
+      ],
+      "object_key": "documents/note_diffusion_pompe_a.pdf",
+      "sha256": "ab04954f371e01dec9efd4a70ee1df6487e9e833fce5b60e81c89ec4c38f2f90",
+      "language": "fr",
+      "page_count": 1,
+      "synthetic": true,
+      "license_note": "Document synthétique généré par scripts/generate_corpus.py. Aucune source tierce, aucune donnée personnelle.",
+      "scanned": false,
+      "contains_injection": true,
+      "restricted": false,
+      "figure_ids": []
+    },
+    {
+      "document_id": "manuel_pompes_07",
+      "version": "2024-03",
+      "title": "Manuel complémentaire - pompes (réf. 07)",
+      "equipment_family": "pompes",
+      "access_groups": [
+        "maintenance",
+        "site_a"
+      ],
+      "object_key": "documents/manuel_pompes_07.pdf",
+      "sha256": "6d07fce953f7ec509f2f678239ec35ce291f011502e86bc776a800a1f0150e74",
+      "language": "fr",
+      "page_count": 1,
+      "synthetic": true,
+      "license_note": "Document synthétique généré par scripts/generate_corpus.py. Aucune source tierce, aucune donnée personnelle.",
+      "scanned": false,
+      "contains_injection": false,
+      "restricted": false,
+      "figure_ids": []
+    },
+    {
+      "document_id": "manuel_armoires_08",
+      "version": "2024-03",
+      "title": "Manuel complémentaire - armoires (réf. 08)",
+      "equipment_family": "armoires",
+      "access_groups": [
+        "maintenance",
+        "site_b"
+      ],
+      "object_key": "documents/manuel_armoires_08.pdf",
+      "sha256": "b3099c2e0b4eb3a3135818c4340997d5d3ef56a420198461ce61e5f43dbec981",
+      "language": "fr",
+      "page_count": 1,
+      "synthetic": true,
+      "license_note": "Document synthétique généré par scripts/generate_corpus.py. Aucune source tierce, aucune donnée personnelle.",
+      "scanned": false,
+      "contains_injection": false,
+      "restricted": false,
+      "figure_ids": []
+    },
+    {
+      "document_id": "procedure_pompes_09",
+      "version": "2024-03",
+      "title": "Procedure complémentaire - pompes (réf. 09)",
+      "equipment_family": "pompes",
+      "access_groups": [
+        "maintenance",
+        "site_a"
+      ],
+      "object_key": "documents/procedure_pompes_09.pdf",
+      "sha256": "b8a38f94265287167f06e136f4ff4d2f4e60dc02531c56b97d9e4be4fb76f79b",
+      "language": "fr",
+      "page_count": 1,
+      "synthetic": true,
+      "license_note": "Document synthétique généré par scripts/generate_corpus.py. Aucune source tierce, aucune donnée personnelle.",
+      "scanned": false,
+      "contains_injection": false,
+      "restricted": false,
+      "figure_ids": []
+    },
+    {
+      "document_id": "procedure_armoires_10",
+      "version": "2024-03",
+      "title": "Procedure complémentaire - armoires (réf. 10)",
+      "equipment_family": "armoires",
+      "access_groups": [
+        "maintenance",
+        "site_b"
+      ],
+      "object_key": "documents/procedure_armoires_10.pdf",
+      "sha256": "56ef7a662eafd46a748e6e41ddf644a879169f9831cf87bc083d8c127c665633",
+      "language": "fr",
+      "page_count": 1,
+      "synthetic": true,
+      "license_note": "Document synthétique généré par scripts/generate_corpus.py. Aucune source tierce, aucune donnée personnelle.",
+      "scanned": false,
+      "contains_injection": false,
+      "restricted": false,
+      "figure_ids": []
+    },
+    {
+      "document_id": "historique_pompes_11",
+      "version": "2024-03",
+      "title": "Historique complémentaire - pompes (réf. 11)",
+      "equipment_family": "pompes",
+      "access_groups": [
+        "maintenance",
+        "site_a"
+      ],
+      "object_key": "documents/historique_pompes_11.pdf",
+      "sha256": "cd91c05858a22f2194aea1a18d1c9f0ee28168bfe7d267174387d5f544b6522d",
+      "language": "fr",
+      "page_count": 1,
+      "synthetic": true,
+      "license_note": "Document synthétique généré par scripts/generate_corpus.py. Aucune source tierce, aucune donnée personnelle.",
+      "scanned": false,
+      "contains_injection": false,
+      "restricted": false,
+      "figure_ids": []
+    },
+    {
+      "document_id": "historique_armoires_12",
+      "version": "2024-03",
+      "title": "Historique complémentaire - armoires (réf. 12)",
+      "equipment_family": "armoires",
+      "access_groups": [
+        "maintenance",
+        "site_b"
+      ],
+      "object_key": "documents/historique_armoires_12.pdf",
+      "sha256": "1ac7bc0ea6b45d4b286a90b86aedd4cc005dc1a1484b102494408d18f3cff449",
+      "language": "fr",
+      "page_count": 1,
+      "synthetic": true,
+      "license_note": "Document synthétique généré par scripts/generate_corpus.py. Aucune source tierce, aucune donnée personnelle.",
+      "scanned": false,
+      "contains_injection": false,
+      "restricted": false,
+      "figure_ids": []
+    },
+    {
+      "document_id": "manuel_pompes_13",
+      "version": "2024-03",
+      "title": "Manuel complémentaire - pompes (réf. 13)",
+      "equipment_family": "pompes",
+      "access_groups": [
+        "maintenance",
+        "site_a"
+      ],
+      "object_key": "documents/manuel_pompes_13.pdf",
+      "sha256": "c793186485396521253bf04bdf4ff8f0bc3ff928d268b2c52d442567bae70767",
+      "language": "fr",
+      "page_count": 1,
+      "synthetic": true,
+      "license_note": "Document synthétique généré par scripts/generate_corpus.py. Aucune source tierce, aucune donnée personnelle.",
+      "scanned": false,
+      "contains_injection": false,
+      "restricted": false,
+      "figure_ids": []
+    },
+    {
+      "document_id": "manuel_armoires_14",
+      "version": "2024-03",
+      "title": "Manuel complémentaire - armoires (réf. 14)",
+      "equipment_family": "armoires",
+      "access_groups": [
+        "maintenance",
+        "site_b"
+      ],
+      "object_key": "documents/manuel_armoires_14.pdf",
+      "sha256": "951c65389f73cb5d74a3a44f87ad85f88bd86fc1a9aa2cb943c69c142df3e85b",
+      "language": "fr",
+      "page_count": 1,
+      "synthetic": true,
+      "license_note": "Document synthétique généré par scripts/generate_corpus.py. Aucune source tierce, aucune donnée personnelle.",
+      "scanned": false,
+      "contains_injection": false,
+      "restricted": false,
+      "figure_ids": []
+    },
+    {
+      "document_id": "procedure_pompes_15",
+      "version": "2024-03",
+      "title": "Procedure complémentaire - pompes (réf. 15)",
+      "equipment_family": "pompes",
+      "access_groups": [
+        "maintenance",
+        "site_a"
+      ],
+      "object_key": "documents/procedure_pompes_15.pdf",
+      "sha256": "b6acea0f4781bcfcff9ab530259b6548226a15a3b59588671dcfc72bcb490ecd",
+      "language": "fr",
+      "page_count": 1,
+      "synthetic": true,
+      "license_note": "Document synthétique généré par scripts/generate_corpus.py. Aucune source tierce, aucune donnée personnelle.",
+      "scanned": false,
+      "contains_injection": false,
+      "restricted": false,
+      "figure_ids": []
+    },
+    {
+      "document_id": "procedure_armoires_16",
+      "version": "2024-03",
+      "title": "Procedure complémentaire - armoires (réf. 16)",
+      "equipment_family": "armoires",
+      "access_groups": [
+        "maintenance",
+        "site_b"
+      ],
+      "object_key": "documents/procedure_armoires_16.pdf",
+      "sha256": "c0c28eb5b02753197b9b2b1603c996c1f2df7a38a6d5cc58b88fd9d682ca9829",
+      "language": "fr",
+      "page_count": 1,
+      "synthetic": true,
+      "license_note": "Document synthétique généré par scripts/generate_corpus.py. Aucune source tierce, aucune donnée personnelle.",
+      "scanned": false,
+      "contains_injection": false,
+      "restricted": false,
+      "figure_ids": []
+    },
+    {
+      "document_id": "historique_pompes_17",
+      "version": "2024-03",
+      "title": "Historique complémentaire - pompes (réf. 17)",
+      "equipment_family": "pompes",
+      "access_groups": [
+        "maintenance",
+        "site_a"
+      ],
+      "object_key": "documents/historique_pompes_17.pdf",
+      "sha256": "ef3450fb88424f7895f360e603c4c032d58d6c8074c4d3b62f6b101263a489b3",
+      "language": "fr",
+      "page_count": 1,
+      "synthetic": true,
+      "license_note": "Document synthétique généré par scripts/generate_corpus.py. Aucune source tierce, aucune donnée personnelle.",
+      "scanned": false,
+      "contains_injection": false,
+      "restricted": false,
+      "figure_ids": []
+    },
+    {
+      "document_id": "historique_armoires_18",
+      "version": "2024-03",
+      "title": "Historique complémentaire - armoires (réf. 18)",
+      "equipment_family": "armoires",
+      "access_groups": [
+        "maintenance",
+        "site_b"
+      ],
+      "object_key": "documents/historique_armoires_18.pdf",
+      "sha256": "c55c030aefea13efc8e9e2c76d17e8601f8775cb1802baa3c93ba363b63e27a2",
+      "language": "fr",
+      "page_count": 1,
+      "synthetic": true,
+      "license_note": "Document synthétique généré par scripts/generate_corpus.py. Aucune source tierce, aucune donnée personnelle.",
+      "scanned": false,
+      "contains_injection": false,
+      "restricted": false,
+      "figure_ids": []
+    },
+    {
+      "document_id": "manuel_pompes_19",
+      "version": "2024-03",
+      "title": "Manuel complémentaire - pompes (réf. 19)",
+      "equipment_family": "pompes",
+      "access_groups": [
+        "maintenance",
+        "site_a"
+      ],
+      "object_key": "documents/manuel_pompes_19.pdf",
+      "sha256": "f26eaa28233918271ba03ab8612c975c429d480f5f9c21ac5b6759eb4d0a6ecd",
+      "language": "fr",
+      "page_count": 1,
+      "synthetic": true,
+      "license_note": "Document synthétique généré par scripts/generate_corpus.py. Aucune source tierce, aucune donnée personnelle.",
+      "scanned": false,
+      "contains_injection": false,
+      "restricted": false,
+      "figure_ids": []
+    },
+    {
+      "document_id": "manuel_armoires_20",
+      "version": "2024-03",
+      "title": "Manuel complémentaire - armoires (réf. 20)",
+      "equipment_family": "armoires",
+      "access_groups": [
+        "maintenance",
+        "site_b"
+      ],
+      "object_key": "documents/manuel_armoires_20.pdf",
+      "sha256": "a8ee99181941efd2076e6aeca1e082ae9a4adbb22dabfe0d736cf73ed1b68d66",
+      "language": "fr",
+      "page_count": 1,
+      "synthetic": true,
+      "license_note": "Document synthétique généré par scripts/generate_corpus.py. Aucune source tierce, aucune donnée personnelle.",
+      "scanned": false,
+      "contains_injection": false,
+      "restricted": false,
+      "figure_ids": []
+    },
+    {
+      "document_id": "procedure_pompes_21",
+      "version": "2024-03",
+      "title": "Procedure complémentaire - pompes (réf. 21)",
+      "equipment_family": "pompes",
+      "access_groups": [
+        "maintenance",
+        "site_a"
+      ],
+      "object_key": "documents/procedure_pompes_21.pdf",
+      "sha256": "d2771940e2c4b1775a1173c547eb516decc9ad2d8a57f57c4fcaf471349cbf7f",
+      "language": "fr",
+      "page_count": 1,
+      "synthetic": true,
+      "license_note": "Document synthétique généré par scripts/generate_corpus.py. Aucune source tierce, aucune donnée personnelle.",
+      "scanned": false,
+      "contains_injection": false,
+      "restricted": false,
+      "figure_ids": []
+    },
+    {
+      "document_id": "procedure_armoires_22",
+      "version": "2024-03",
+      "title": "Procedure complémentaire - armoires (réf. 22)",
+      "equipment_family": "armoires",
+      "access_groups": [
+        "maintenance",
+        "site_b"
+      ],
+      "object_key": "documents/procedure_armoires_22.pdf",
+      "sha256": "36a6d3032ac7e5d0fdd767bd65bf2ff7079d38785b9d90107df4bbf5fe4955ad",
+      "language": "fr",
+      "page_count": 1,
+      "synthetic": true,
+      "license_note": "Document synthétique généré par scripts/generate_corpus.py. Aucune source tierce, aucune donnée personnelle.",
+      "scanned": false,
+      "contains_injection": false,
+      "restricted": false,
+      "figure_ids": []
+    },
+    {
+      "document_id": "historique_pompes_23",
+      "version": "2024-03",
+      "title": "Historique complémentaire - pompes (réf. 23)",
+      "equipment_family": "pompes",
+      "access_groups": [
+        "maintenance",
+        "site_a"
+      ],
+      "object_key": "documents/historique_pompes_23.pdf",
+      "sha256": "c765df4fff2f53e0de60d9e62034079b523868f68d17785c87935a767416ab85",
+      "language": "fr",
+      "page_count": 1,
+      "synthetic": true,
+      "license_note": "Document synthétique généré par scripts/generate_corpus.py. Aucune source tierce, aucune donnée personnelle.",
+      "scanned": false,
+      "contains_injection": false,
+      "restricted": false,
+      "figure_ids": []
+    },
+    {
+      "document_id": "historique_armoires_24",
+      "version": "2024-03",
+      "title": "Historique complémentaire - armoires (réf. 24)",
+      "equipment_family": "armoires",
+      "access_groups": [
+        "maintenance",
+        "site_b"
+      ],
+      "object_key": "documents/historique_armoires_24.pdf",
+      "sha256": "b4763bb2da7479b916a87a31ba7d91b5289ea1d7b414fd19ce56ce35364fce9c",
+      "language": "fr",
+      "page_count": 1,
+      "synthetic": true,
+      "license_note": "Document synthétique généré par scripts/generate_corpus.py. Aucune source tierce, aucune donnée personnelle.",
+      "scanned": false,
+      "contains_injection": false,
+      "restricted": false,
+      "figure_ids": []
+    },
+    {
+      "document_id": "manuel_pompes_25",
+      "version": "2024-03",
+      "title": "Manuel complémentaire - pompes (réf. 25)",
+      "equipment_family": "pompes",
+      "access_groups": [
+        "maintenance",
+        "site_a"
+      ],
+      "object_key": "documents/manuel_pompes_25.pdf",
+      "sha256": "8638ad5f4117f1615017dc99c818da6746a07dce87b9ba0e86824ffde45593e2",
+      "language": "fr",
+      "page_count": 1,
+      "synthetic": true,
+      "license_note": "Document synthétique généré par scripts/generate_corpus.py. Aucune source tierce, aucune donnée personnelle.",
+      "scanned": false,
+      "contains_injection": false,
+      "restricted": false,
+      "figure_ids": []
+    },
+    {
+      "document_id": "manuel_armoires_26",
+      "version": "2024-03",
+      "title": "Manuel complémentaire - armoires (réf. 26)",
+      "equipment_family": "armoires",
+      "access_groups": [
+        "maintenance",
+        "site_b"
+      ],
+      "object_key": "documents/manuel_armoires_26.pdf",
+      "sha256": "ead53f3fd2ac0fbe0d701da5a83bd9c6161cf0fcfc32d4e33ac84c855eb21dd3",
+      "language": "fr",
+      "page_count": 1,
+      "synthetic": true,
+      "license_note": "Document synthétique généré par scripts/generate_corpus.py. Aucune source tierce, aucune donnée personnelle.",
+      "scanned": false,
+      "contains_injection": false,
+      "restricted": false,
+      "figure_ids": []
+    },
+    {
+      "document_id": "procedure_pompes_27",
+      "version": "2024-03",
+      "title": "Procedure complémentaire - pompes (réf. 27)",
+      "equipment_family": "pompes",
+      "access_groups": [
+        "maintenance",
+        "site_a"
+      ],
+      "object_key": "documents/procedure_pompes_27.pdf",
+      "sha256": "fa45951a201fc356eddd9ec60e0e1edbe2cf8ae008c14e2a4b5dad52912d5d20",
+      "language": "fr",
+      "page_count": 1,
+      "synthetic": true,
+      "license_note": "Document synthétique généré par scripts/generate_corpus.py. Aucune source tierce, aucune donnée personnelle.",
+      "scanned": false,
+      "contains_injection": false,
+      "restricted": false,
+      "figure_ids": []
+    },
+    {
+      "document_id": "procedure_armoires_28",
+      "version": "2024-03",
+      "title": "Procedure complémentaire - armoires (réf. 28)",
+      "equipment_family": "armoires",
+      "access_groups": [
+        "maintenance",
+        "site_b"
+      ],
+      "object_key": "documents/procedure_armoires_28.pdf",
+      "sha256": "eb74805639cfcec957793496b59ba2a17cdd3446744a7434fe6ce334354ac126",
+      "language": "fr",
+      "page_count": 1,
+      "synthetic": true,
+      "license_note": "Document synthétique généré par scripts/generate_corpus.py. Aucune source tierce, aucune donnée personnelle.",
+      "scanned": false,
+      "contains_injection": false,
+      "restricted": false,
+      "figure_ids": []
+    },
+    {
+      "document_id": "historique_pompes_29",
+      "version": "2024-03",
+      "title": "Historique complémentaire - pompes (réf. 29)",
+      "equipment_family": "pompes",
+      "access_groups": [
+        "maintenance",
+        "site_a"
+      ],
+      "object_key": "documents/historique_pompes_29.pdf",
+      "sha256": "370e728deec8fabe257f371b32ded4371947c9e27f6f0da4c193621401fb3cf9",
+      "language": "fr",
+      "page_count": 1,
+      "synthetic": true,
+      "license_note": "Document synthétique généré par scripts/generate_corpus.py. Aucune source tierce, aucune donnée personnelle.",
+      "scanned": false,
+      "contains_injection": false,
+      "restricted": false,
+      "figure_ids": []
+    },
+    {
+      "document_id": "historique_armoires_30",
+      "version": "2024-03",
+      "title": "Historique complémentaire - armoires (réf. 30)",
+      "equipment_family": "armoires",
+      "access_groups": [
+        "maintenance",
+        "site_b"
+      ],
+      "object_key": "documents/historique_armoires_30.pdf",
+      "sha256": "8e65cfa58622e556d1276068ce8a7da75e81425196e292a2088a7a157e6e8e39",
+      "language": "fr",
+      "page_count": 1,
+      "synthetic": true,
+      "license_note": "Document synthétique généré par scripts/generate_corpus.py. Aucune source tierce, aucune donnée personnelle.",
+      "scanned": false,
+      "contains_injection": false,
+      "restricted": false,
+      "figure_ids": []
+    },
+    {
+      "document_id": "manuel_pompes_31",
+      "version": "2024-03",
+      "title": "Manuel complémentaire - pompes (réf. 31)",
+      "equipment_family": "pompes",
+      "access_groups": [
+        "maintenance",
+        "site_a"
+      ],
+      "object_key": "documents/manuel_pompes_31.pdf",
+      "sha256": "c82ade24cd337ae13e4917aacbe916d08b4c73d9100ade250cc22cc1ccdb8e4b",
+      "language": "fr",
+      "page_count": 1,
+      "synthetic": true,
+      "license_note": "Document synthétique généré par scripts/generate_corpus.py. Aucune source tierce, aucune donnée personnelle.",
+      "scanned": false,
+      "contains_injection": false,
+      "restricted": false,
+      "figure_ids": []
+    },
+    {
+      "document_id": "manuel_armoires_32",
+      "version": "2024-03",
+      "title": "Manuel complémentaire - armoires (réf. 32)",
+      "equipment_family": "armoires",
+      "access_groups": [
+        "maintenance",
+        "site_b"
+      ],
+      "object_key": "documents/manuel_armoires_32.pdf",
+      "sha256": "36ae82a47ce26818493b2e352710a446a17d5e9ea6eed06c0233d4ba98995314",
+      "language": "fr",
+      "page_count": 1,
+      "synthetic": true,
+      "license_note": "Document synthétique généré par scripts/generate_corpus.py. Aucune source tierce, aucune donnée personnelle.",
+      "scanned": false,
+      "contains_injection": false,
+      "restricted": false,
+      "figure_ids": []
+    },
+    {
+      "document_id": "procedure_pompes_33",
+      "version": "2024-03",
+      "title": "Procedure complémentaire - pompes (réf. 33)",
+      "equipment_family": "pompes",
+      "access_groups": [
+        "maintenance",
+        "site_a"
+      ],
+      "object_key": "documents/procedure_pompes_33.pdf",
+      "sha256": "1b5b56768aacfb4bbd9d2193b41bf0ea5f502104bbf70b09e413aa0bec788894",
+      "language": "fr",
+      "page_count": 1,
+      "synthetic": true,
+      "license_note": "Document synthétique généré par scripts/generate_corpus.py. Aucune source tierce, aucune donnée personnelle.",
+      "scanned": false,
+      "contains_injection": false,
+      "restricted": false,
+      "figure_ids": []
+    },
+    {
+      "document_id": "procedure_armoires_34",
+      "version": "2024-03",
+      "title": "Procedure complémentaire - armoires (réf. 34)",
+      "equipment_family": "armoires",
+      "access_groups": [
+        "maintenance",
+        "site_b"
+      ],
+      "object_key": "documents/procedure_armoires_34.pdf",
+      "sha256": "61b11b18c0e2d5f150c938e311974313cbc6db7cf0b730d8d6405bc2a569917c",
+      "language": "fr",
+      "page_count": 1,
+      "synthetic": true,
+      "license_note": "Document synthétique généré par scripts/generate_corpus.py. Aucune source tierce, aucune donnée personnelle.",
+      "scanned": false,
+      "contains_injection": false,
+      "restricted": false,
+      "figure_ids": []
+    }
+  ]
+}

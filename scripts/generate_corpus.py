@@ -7,7 +7,7 @@ licence log is trivially clean and there is no personal data to strip (SPEC §2)
 
 Why synthetic and generated rather than checked in:
 
-* reproducible — generation is seeded, so the same commit produces the same
+* reproducible - generation is seeded, so the same commit produces the same
   corpus, which is a precondition for the eval numbers in SPEC §10 meaning
   anything;
 * the PDFs stay out of git (only `corpus/manifest.json` is committed);
@@ -111,7 +111,7 @@ class DocumentSpec:
 
 def _pump_panel() -> FigureSpec:
     return FigureSpec(
-        caption="Figure — Voyants du panneau de commande du groupe de pompage",
+        caption="Figure - Voyants du panneau de commande du groupe de pompage",
         lights=(
             LightSpec("V1 vert", GREEN, "Groupe en marche normale, aucun défaut."),
             LightSpec(
@@ -133,7 +133,7 @@ def _pump_panel() -> FigureSpec:
 
 def _cabinet_panel() -> FigureSpec:
     return FigureSpec(
-        caption="Figure — Voyants de l'armoire de commande électrique",
+        caption="Figure - Voyants de l'armoire de commande électrique",
         lights=(
             LightSpec("K1 vert", GREEN, "Contrôleur sous tension, cycle en cours."),
             LightSpec(
@@ -157,9 +157,9 @@ def pump_manual(document_id: str, restricted: bool = False) -> DocumentSpec:
     return DocumentSpec(
         document_id=document_id,
         title=(
-            "Manuel technique restreint — groupe de pompage"
+            "Manuel technique restreint - groupe de pompage"
             if restricted
-            else "Manuel technique — groupe de pompage centrifuge"
+            else "Manuel technique - groupe de pompage centrifuge"
         ),
         equipment_family="pompes",
         access_groups=groups,
@@ -190,7 +190,7 @@ def pump_manual(document_id: str, restricted: bool = False) -> DocumentSpec:
                     "trimestriel décrit au chapitre 4.",
                 ),
                 table=TableSpec(
-                    caption="Tableau — Caractéristiques nominales du groupe",
+                    caption="Tableau - Caractéristiques nominales du groupe",
                     headers=("Grandeur", "Valeur", "Tolérance"),
                     rows=(
                         ("Débit nominal", "42 m³/h", "± 5 %"),
@@ -233,7 +233,7 @@ def pump_manual(document_id: str, restricted: bool = False) -> DocumentSpec:
 def pump_procedure(document_id: str) -> DocumentSpec:
     return DocumentSpec(
         document_id=document_id,
-        title="Procédure d'intervention — alarme température groupe de pompage",
+        title="Procédure d'intervention - alarme température groupe de pompage",
         equipment_family="pompes",
         access_groups=frozenset({"maintenance", "site_a"}),
         sections=(
@@ -260,7 +260,7 @@ def pump_procedure(document_id: str) -> DocumentSpec:
                     "d'intervention. La création du ticket requiert une validation humaine.",
                 ),
                 table=TableSpec(
-                    caption="Tableau — Seuils et actions associées",
+                    caption="Tableau - Seuils et actions associées",
                     headers=("Température", "État", "Action"),
                     rows=(
                         ("< 78 °C", "Nominal", "Aucune action"),
@@ -276,7 +276,7 @@ def pump_procedure(document_id: str) -> DocumentSpec:
 def cabinet_manual(document_id: str) -> DocumentSpec:
     return DocumentSpec(
         document_id=document_id,
-        title="Manuel technique — armoire de commande électrique",
+        title="Manuel technique - armoire de commande électrique",
         equipment_family="armoires",
         access_groups=frozenset({"maintenance", "site_b"}),
         sections=(
@@ -305,7 +305,7 @@ def cabinet_manual(document_id: str) -> DocumentSpec:
                     "d'un technicien habilité.",
                 ),
                 table=TableSpec(
-                    caption="Tableau — Appareillage de protection",
+                    caption="Tableau - Appareillage de protection",
                     headers=("Repère", "Fonction", "Calibre"),
                     rows=(
                         ("Q1", "Sectionneur principal", "63 A"),
@@ -322,13 +322,13 @@ def scanned_sheet(document_id: str) -> DocumentSpec:
     """A document with no text layer: every page is an image, so OCR is required."""
     return DocumentSpec(
         document_id=document_id,
-        title="Fiche d'intervention scannée — relevé trimestriel groupe de pompage",
+        title="Fiche d'intervention scannée - relevé trimestriel groupe de pompage",
         equipment_family="pompes",
         access_groups=frozenset({"maintenance", "site_a"}),
         scanned=True,
         sections=(
             SectionSpec(
-                heading="Relevé trimestriel — groupe de pompage A",
+                heading="Relevé trimestriel - groupe de pompage A",
                 paragraphs=(
                     "Technicien : équipe maintenance site A. Équipement : pompe-a-01. "
                     "Température groupe froid relevée : 81 °C. Intensité absorbée : "
@@ -347,7 +347,7 @@ def injection_document(document_id: str) -> DocumentSpec:
     retrieved document to attack with."""
     return DocumentSpec(
         document_id=document_id,
-        title="Note de service — diffusion des rapports d'intervention",
+        title="Note de service - diffusion des rapports d'intervention",
         equipment_family="pompes",
         access_groups=frozenset({"maintenance", "site_a"}),
         contains_injection=True,
@@ -404,7 +404,7 @@ def build_specs(count: int) -> list[DocumentSpec]:
         specs.append(
             DocumentSpec(
                 document_id=document_id,
-                title=f"{kind.title()} complémentaire — {family} (réf. {number:02d})",
+                title=f"{kind.title()} complémentaire - {family} (réf. {number:02d})",
                 equipment_family=family,
                 access_groups=groups,
                 sections=(
@@ -426,7 +426,7 @@ def build_specs(count: int) -> list[DocumentSpec]:
                             "tolérance doit faire l'objet d'un signalement.",
                         ),
                         table=TableSpec(
-                            caption="Tableau — Grandeurs surveillées",
+                            caption="Tableau - Grandeurs surveillées",
                             headers=("Grandeur", "Seuil", "Périodicité"),
                             rows=(
                                 ("Température", threshold, "mensuelle"),
@@ -483,11 +483,31 @@ def _draw_figure(page: pymupdf.Page, spec: FigureSpec, top: float) -> float:
     return y + 24
 
 
+def _fit_cell(text: str, max_width: float, fontsize: float = 8.5) -> str:
+    """Truncate `text` so it fits `max_width` at `fontsize`, measured for real.
+
+    Cells are drawn with `insert_text` rather than `insert_textbox` because
+    `insert_textbox` returns a negative "unused height" and writes *nothing*
+    when the text does not fit its rect. That silently produced 32 tables with
+    zero extractable text, which would have made retrieval and eval meaningless.
+    Measuring and truncating guarantees the text is always present.
+    """
+    if pymupdf.get_text_length(text, fontname="helv", fontsize=fontsize) <= max_width:
+        return text
+    ellipsis = "..."
+    while text and (
+        pymupdf.get_text_length(text + ellipsis, fontname="helv", fontsize=fontsize) > max_width
+    ):
+        text = text[:-1]
+    return text + ellipsis
+
+
 def _draw_table(page: pymupdf.Page, spec: TableSpec, top: float) -> float:
     width = PAGE_WIDTH - 2 * MARGIN
     columns = len(spec.headers)
     column_width = width / columns
     row_height = 18.0
+    fontsize = 8.5
 
     y = top
     page.insert_textbox(
@@ -507,16 +527,13 @@ def _draw_table(page: pymupdf.Page, spec: TableSpec, top: float) -> float:
             fill=(0.9, 0.9, 0.92) if row_index == 0 else None,
             width=0.6,
         )
+        baseline = y + row_height - 5.5
         for column_index, cell in enumerate(row):
-            page.insert_textbox(
-                pymupdf.Rect(
-                    MARGIN + column_index * column_width + 4,
-                    y + 3,
-                    MARGIN + (column_index + 1) * column_width - 4,
-                    y + row_height - 2,
-                ),
-                str(cell),
-                fontsize=8.5,
+            left = MARGIN + column_index * column_width + 4
+            page.insert_text(
+                (left, baseline),
+                _fit_cell(str(cell), column_width - 8, fontsize),
+                fontsize=fontsize,
                 fontname="helv",
                 color=(0.1, 0.1, 0.1),
             )
@@ -629,7 +646,10 @@ def render_document(spec: DocumentSpec, output_dir: Path, images_dir: Path) -> R
 
     output_dir.mkdir(parents=True, exist_ok=True)
     target = output_dir / f"{spec.document_id}.pdf"
-    doc.save(target, deflate=True, garbage=3)
+    # no_new_id keeps the file /ID stable. Without it MuPDF writes a fresh random
+    # identifier per save, so regenerating produced different bytes, the manifest
+    # sha256 changed on every run, and "reproducible corpus" was not true.
+    doc.save(target, deflate=True, garbage=3, no_new_id=True)
     doc.close()
     return stats
 
@@ -681,6 +701,44 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _assert_renderable(specs: list[DocumentSpec]) -> None:
+    """Fail loudly if any spec text cannot be drawn by the base-14 fonts.
+
+    PyMuPDF's built-in `helv`/`hebo` are Latin-1 only; anything outside it is
+    silently rendered as `?`, which corrupts the text layer that retrieval
+    depends on. An em dash did exactly that before this guard existed.
+    """
+
+    def strings(spec: DocumentSpec) -> list[str]:
+        found = [spec.document_id, spec.title, spec.restricted_note]
+        for section in spec.sections:
+            found.append(section.heading)
+            found.extend(section.paragraphs)
+            if section.table is not None:
+                found.append(section.table.caption)
+                found.extend(section.table.headers)
+                for row in section.table.rows:
+                    found.extend(row)
+            if section.figure is not None:
+                found.append(section.figure.caption)
+                found.append(section.figure.note)
+                for light in section.figure.lights:
+                    found.append(light.label)
+                    found.append(light.meaning)
+        return found
+
+    for spec in specs:
+        for text in strings(spec):
+            for character in text:
+                try:
+                    character.encode("latin-1")
+                except UnicodeEncodeError as exc:
+                    raise ValueError(
+                        f"{spec.document_id}: character {character!r} (U+{ord(character):04X}) "
+                        "cannot be rendered by the base-14 fonts; use an ASCII equivalent"
+                    ) from exc
+
+
 def generate(count: int, *, corpus_dir: Path = CORPUS_DIR) -> dict[str, Any]:
     """Generate the corpus and write its manifest. Returns the manifest."""
     documents_dir = corpus_dir / "documents"
@@ -689,6 +747,7 @@ def generate(count: int, *, corpus_dir: Path = CORPUS_DIR) -> dict[str, Any]:
     images_dir.mkdir(parents=True, exist_ok=True)
 
     specs = build_specs(count)
+    _assert_renderable(specs)
     entries: list[dict[str, Any]] = []
     totals = {"pages": 0, "figures": 0, "tables": 0, "paragraphs": 0}
 
@@ -724,7 +783,7 @@ def generate(count: int, *, corpus_dir: Path = CORPUS_DIR) -> dict[str, Any]:
         "corpus_version": "1.0.0",
         "generated_by": "scripts/generate_corpus.py",
         "seed": 20261101,
-        "spec_reference": "SPEC §2 — 30 à 50 documents autorisés, deux familles d'équipements",
+        "spec_reference": "SPEC §2 - 30 à 50 documents autorisés, deux familles d'équipements",
         "document_count": len(entries),
         "equipment_families": families,
         "totals": totals,
@@ -735,7 +794,7 @@ def generate(count: int, *, corpus_dir: Path = CORPUS_DIR) -> dict[str, Any]:
         "restricted_documents": [e["document_id"] for e in entries if e["restricted"]],
         "license_log": {
             "note": LICENSE_NOTE,
-            "personal_data": "none — all users, equipment and tickets are fictional",
+            "personal_data": "none - all users, equipment and tickets are fictional",
         },
         "documents": entries,
     }
