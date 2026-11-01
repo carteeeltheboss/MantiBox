@@ -1,7 +1,12 @@
 # AGENTS.md — rules for any LLM working on MaintiDoc
 
-Read order at the start of EVERY session: this file → `docs/STATUS.md` → the assigned issue → the relevant section of `docs/SPEC.md`.
+Read order at the start of EVERY session: **`docs/HANDOFF.md`** → `docs/STATUS.md` → the assigned issue → the relevant section of `docs/SPEC.md`.
 (`CLAUDE.md`, `GEMINI.md`, `.cursorrules` are symlinks to this file. Edit only `AGENTS.md`.)
+
+`docs/HANDOFF.md` is the cold-start briefing: verified environment facts, what is
+built versus missing, the trap list (PyMuPDF, mypy-strict, qdrant-client,
+transformers 5, Windows shell) and the exact next steps. Read it before touching
+code; it exists so no one repeats a debugging cycle already paid for.
 
 ## Project
 MaintiDoc: multimodal, agentic maintenance-documentation assistant (school project).

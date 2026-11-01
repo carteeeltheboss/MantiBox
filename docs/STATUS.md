@@ -1,6 +1,8 @@
 # STATUS
 
 > Updated at the end of EVERY session by the LLM. A cold-start LLM must be able to continue from this file alone.
+>
+> **Cold start? Read [`docs/HANDOFF.md`](HANDOFF.md) first** — environment facts, the trap list, and the exact next steps. This file is the running state; HANDOFF is the briefing.
 
 **Last updated:** 2026-11-01 by Qwen Code
 **Current milestone:** W2 Ingestion et recherche — ingestion done, embeddings next

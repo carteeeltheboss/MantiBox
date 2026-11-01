@@ -268,9 +268,11 @@ nox -s corpus    # regenerate the synthetic corpus
 nox -s doctor    # device / VRAM / service readiness
 ```
 
-Read [`AGENTS.md`](AGENTS.md) first if you are an LLM working in this repository, then
-[`docs/STATUS.md`](docs/STATUS.md). Decisions are recorded in [`docs/decisions/`](docs/decisions/):
-the repo is the only memory across sessions.
+**Continuing this project (human or LLM):** read [`docs/HANDOFF.md`](docs/HANDOFF.md)
+first — verified environment facts, what is built versus missing, the trap list, and
+the exact next steps. Then [`AGENTS.md`](AGENTS.md) for the binding rules and
+[`docs/STATUS.md`](docs/STATUS.md) for running state. Decisions are recorded in
+[`docs/decisions/`](docs/decisions/): the repo is the only memory across sessions.
 
 ---
 
