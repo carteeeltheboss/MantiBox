@@ -4,10 +4,10 @@
 >
 > **Cold start? Read [`docs/HANDOFF.md`](HANDOFF.md) first** — environment facts, the trap list, and the exact next steps. This file is the running state; HANDOFF is the briefing.
 
-**Last updated:** 2026-11-01 by Qwen Code
-**Current milestone:** W2 Ingestion et recherche — ingestion done, embeddings next
-**Branch / PR state:** `main`, pushed through `31685c6`, nothing in flight
-**Backlog:** GitHub issues #1–#37 exist. Closed: 1, 2, 3, 4, 8, 11, 12, 13, 14, 17.
+**Last updated:** 2026-11-02 by Gemini 3.8 Flash (High) / Antigravity
+**Current milestone:** W2 Ingestion et recherche — RRF and reranker arms done, vertical slice next
+**Branch / PR state:** `main`, clean working tree, aligned with `origin/main`
+**Backlog:** GitHub issues #1–#37 exist. Closed: 1, 2, 3, 4, 8, 11, 12, 13, 14, 15, 17 (11 of 37 closed).
 
 ## Done
 
@@ -30,39 +30,46 @@
 - **Document/file access on open** (`src/maintidoc/retrieval/access.py`): `DocumentOpener` denies **before** fetching bytes, treats an unknown document as denied rather than not-found (no enumeration oracle), and binds image keys to their document so a permitted id cannot borrow a restricted document's figure. Catalogs build from the corpus manifest.
 - **Model weights prefetched and verified** (`models/`, git-ignored): 17.58 GB across BGE-M3 (4.52), multilingual CLIP text tower (4.90), CLIP ViT-B/32 image tower (1.69) and Qwen2.5-VL-7B-AWQ (6.46, confirmed AWQ 4-bit, 2/2 shards). Fetched with `hf download --local-dir` because the HF cache deadlocks on Windows without Developer Mode. Installed `torch 2.15.0+cpu`, `transformers 5.22.1`, `sentence-transformers 6.2.0` and **loaded them for real**: BGE-M3 1024-d with a related passage at 0.8492 vs unrelated 0.4592; CLIP 512-d with identical figures at 1.0000 vs different at 0.8160. See ADR 0007 for the measured cross-modal weakness.
 - **`doctor` CLI** (`src/maintidoc/cli.py`): device, model plan with reasons, prompt versions, corpus integrity, object-store writability, tesseract availability, service reachability.
+- **RRF fusion + reranker arms + retrieval metrics** (#15): `retrieval/fusion.py` (Reciprocal Rank Fusion, default $k=60$ via `RetrievalSettings.rrf_k`, deduplication and channel attribution), `retrieval/reranker.py` with all four arms (`none`, `deterministic`, `bge`, `adapter`), `retrieval/metrics.py` (Recall@5, nDCG@5, MRR@10) with resilient MLflow logging, `eval/run.py` and `eval/benchmark_data.py`. See ADR 0008.
 
-Verified: `nox -s check` green (ruff, format, mypy on 32 modules, 372 fast tests); **413 tests** including 41 integration tests against a live `qdrant/qdrant:v1.20.0`. `doctor` runs.
+### Measured Retrieval Baselines (Issue #15)
+
+Evaluated on the seed scenarios via `eval/run.py`:
+
+| Configuration | Recall@5 | nDCG@5 | MRR@10 | Notes |
+|---|---|---|---|---|
+| **Hash Doubles (No Reranker)** | 0.4722 | 0.4059 | 0.5556 | Deterministic, torch-free fast double |
+| **Hash Doubles (Deterministic Reranker)** | 0.5556 | 0.3908 | 0.3681 | Keyword overlap reranker on hash hits |
+| **Real BGE-M3 + CLIP (No Reranker)** | **0.7222** | **0.6132** | **0.8056** | Real semantic models, RRF $k=60$ |
+| **Real BGE-M3 + CLIP (BGE Reranker)** | *unmeasured* | *unmeasured* | *unmeasured* | Weights not downloaded on host (~2.3 GB) |
+| **Real BGE-M3 + CLIP (Adapted Reranker)**| *unmeasured* | *unmeasured* | *unmeasured* | Adapter training pending (#28) |
+
+Verified: `nox -s check` green (ruff, format, mypy on 35 modules, 420 fast tests); **461 tests** including 41 integration tests against a live `qdrant/qdrant:v1.20.0`. `doctor` and `eval.run` run cleanly.
 
 ## In progress
 
-- Nothing half-written. Next unit: RRF fusion and the reranker arms (issue #15).
+- Next unit: Vertical slice (issue #9).
 
 ## Next (ordered)
 
-1. **RRF fusion + reranker arms** (#15): base, adapted and none — the "no reranker" arm is required by SPEC §5.
-2. **Vertical slice** (#9): question → retrieve → cited answer through the stub VLM.
-3. **MCP server + client** (#22, #23) with per-call authorization.
-4. **LangGraph workflow** (#24): SPEC §6 node sequence, budgets, citation verification, abstention.
-5. **FastAPI + Streamlit** (#21).
-6. **Docker Compose** (#10, SeaweedFS per ADR 0006).
-7. **Eval harness** (#6, #30) with seed scenarios.
-8. **`bench-vlm`** (#16), then measured VRAM recorded in ADR 0003.
-9. **Install the `ml` extra** and verify the real BGE-M3 and CLIP towers load and align, replacing the doubles in the integration tests.
-10. **Threat model** (#5) and **MLflow convention** (#7).
+1. **Vertical slice** (#9): question → retrieve → render_sources → stub VLM → citation verification → `AnswerPayload`, with abstention when evidence is insufficient.
+2. **MCP server + client** (#22, #23) with per-call authorization.
+3. **LangGraph workflow** (#24): SPEC §6 node sequence, budgets, citation verification, abstention.
+4. **FastAPI + Streamlit** (#21).
+5. **Docker Compose** (#10, SeaweedFS per ADR 0006).
+6. **Eval harness expansion** (#6, #30) with ~150 scenarios.
+7. **`bench-vlm`** (#16), then measured VRAM recorded in ADR 0003.
+8. **Threat model** (#5) and **MLflow convention** (#7).
 
 ## Blockers / waiting on human
 
-- **None blocking.** Object storage is decided: **SeaweedFS**, see ADR 0006
-  (accepted). MinIO is unpullable from every public source, so SPEC §3's vendor is
-  replaced while its semantics are kept; the code talks the `ObjectStore`
-  interface either way.
-- **No `gh` CLI was on PATH** at session start; it is now installed and the
-  backlog exists in GitHub Issues.
+- **None blocking.** Object storage is decided: **SeaweedFS**, see ADR 0006 (accepted).
+- Reranker weights for `BAAI/bge-reranker-v2-m3` (~2.3 GB): interface and loading code are ready; waiting on human authorization to download.
+- CUDA torch build for Qwen2.5-VL-7B-AWQ: needs human approval for torch re-installation.
 
 ## Open questions
 
-1. How the ~150-scenario eval set (SPEC §10) will be annotated — it needs human
-   verification, so generated scenarios must be marked unverified until reviewed.
+1. How the ~150-scenario eval set (SPEC §10) will be annotated — it needs human verification, so generated scenarios must be marked unverified until reviewed.
 
 ## How to run right now
 
@@ -72,6 +79,7 @@ Windows host (no `make`):
 python -m venv .venv
 .venv\Scripts\pip install -e ".[dev]"
 .venv\Scripts\nox -s check          :: lint + mypy + tests
+.venv\Scripts\python -m eval.run    :: retrieval evaluation benchmark
 .venv\Scripts\maintidoc doctor      :: what this machine can actually run
 python scripts/generate_corpus.py --count 8 --corpus-dir .tmp-corpus
 ```
@@ -82,18 +90,16 @@ Linux / CI / containers: `make check`, `make doctor`, `make corpus`.
 
 Be honest about these — none of them have been exercised:
 
-- **BGE-M3 and both CLIP towers ARE loaded and semantically verified** (see Done). Two caveats remain: the index/pipeline integration tests still use the deterministic doubles for speed, so retrieval *quality* end-to-end is not measured yet; and text→image alignment is weak on this corpus — the wrong panel scored higher (0.2991 vs 0.2691), per ADR 0007. Image→image retrieval is sound.
+- **BGE cross-encoder reranker inference:** `BAAI/bge-reranker-v2-m3` was not downloaded; loading logic is covered by unit tests, but inference quality on the corpus remains unmeasured.
 - **The Qwen2.5-VL 7B has never been loaded.** The weights are on disk, but `vlm/qwen.py` does not exist and the installed torch is a **CPU-only build** — so the 7B is blocked on a CUDA torch, `autoawq`, and the VRAM measurement in ADR 0003.
 - **No OCR has ever run.** tesseract is not on the Windows host and no image has been built.
-- **No integration test has run against PostgreSQL or an object store.** Qdrant
-  is covered (32 tests); Postgres and S3 are not.
+- **No integration test has run against PostgreSQL or an object store.** Qdrant is covered (41 tests); Postgres and S3 are not.
 - **No Docker image or compose file exists yet.**
 - **CI has never executed** on GitHub.
-- `nox -s ingest`, `-s eval` and `-s bench_vlm` reference modules that do not exist yet; those sessions currently fail by design.
-- The corpus is generated at the full 34 documents, but nothing has been **ingested** into the index yet: no end-to-end run has loaded the corpus, embedded it and searched it.
+- `nox -s ingest` and `-s bench_vlm` reference CLI commands that do not exist yet.
 - No fine-tuning work started (SPEC §5); no reranker dataset exists.
 
 ## Pointers
 
 - Spec: `docs/SPEC.md` · Architecture: `docs/ARCHITECTURE.md` · Decisions: `docs/decisions/` · Session logs: `docs/sessions/`
-- Backlog: GitHub Issues/Projects **not yet created** (no `gh` CLI)
+- Backlog: GitHub Issues #1–#37 exist (`gh issue list`)

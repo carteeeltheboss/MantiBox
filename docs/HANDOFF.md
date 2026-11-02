@@ -8,16 +8,15 @@ unverified it says so.
 
 ## TL;DR
 
-The **foundation is complete and tested; the pipeline is not joined.** Ingestion,
-both embedding towers, both vector indexes and access control all work and are
-covered by 413 tests. **No question can be answered yet:** the VLM provider, the
+The **foundation is complete and tested; retrieval fusion and reranker arms are in place.** Ingestion,
+both embedding towers, both vector indexes, access control, RRF multimodal fusion and the reranker seam
+all work and are covered by 461 tests. **No question can be answered yet:** the VLM provider, the
 MCP server, the LangGraph workflow, the API, the UI and Docker do not exist.
 
-**Single next action:** issue **#15** (RRF fusion + reranker arms), then **#9**
-(the vertical slice), then **#10** (Compose). Those three turn this from a
-scaffold into something you can watch work.
+**Single next action:** issue **#9** (the vertical slice: question -> retrieve -> render_sources -> stub VLM -> citation verification -> AnswerPayload),
+then **#22/#23** (MCP server + client), then **#24** (LangGraph workflow).
 
-Backlog: **10 of 37** issues closed (#1, 2, 3, 4, 8, 11, 12, 13, 14, 17).
+Backlog: **11 of 37** issues closed (#1, 2, 3, 4, 8, 11, 12, 13, 14, 15, 17).
 
 ---
 
@@ -104,16 +103,17 @@ re-download; point loaders at these paths.
 | BGE-M3 embedder + Qdrant index (access-filtered, idempotent) | `retrieval/embeddings.py`, `retrieval/index.py` | #12 |
 | Two-tower CLIP image embedder + 512-d image index | `retrieval/images.py` | #13 |
 | Deny-before-fetch document/figure opening | `retrieval/access.py` | #14 |
+| RRF fusion, reranker arms, retrieval metrics | `retrieval/fusion.py`, `retrieval/reranker.py`, `retrieval/metrics.py`, `eval/run.py` | #15 |
 | `doctor` CLI | `cli.py` | — |
-| 6 ADRs, STATUS, ARCHITECTURE, session log | `docs/` | — |
+| 8 ADRs, STATUS, ARCHITECTURE, session logs | `docs/` | — |
 
 ## What is NOT built
 
 - `vlm/qwen.py` — the real Qwen2.5-VL provider. **The 7B has never been loaded.**
-- RRF fusion, reranker (`#15`) · MCP server + client, LangGraph workflow (`#22`–`#26`)
+- MCP server + client, LangGraph workflow (`#22`–`#26`)
 - FastAPI, Streamlit (`#21`) · **`Dockerfile`, `docker-compose.yml`** (`#10`, `#34`)
-- Eval harness (`#6`, `#30`) · fine-tuning (`#27`–`#28`) · `bench-vlm` (`#16`)
-- `maintidoc ingest` and `maintidoc bench-vlm` CLI commands — `nox -s ingest|eval|bench_vlm`
+- Eval harness expansion to ~150 scenarios (`#30`) · fine-tuning (`#27`–`#28`) · `bench-vlm` (`#16`)
+- `maintidoc ingest` and `maintidoc bench-vlm` CLI commands — `nox -s ingest|bench_vlm`
   currently fail by design
 
 ---
@@ -139,8 +139,8 @@ docker run -d --name maintidoc-qdrant -p 6333:6333 -p 6334:6334 qdrant/qdrant:v1
 .venv\Scripts\python.exe scripts\generate_corpus.py
 ```
 
-**Expected today:** `nox -s check` green, **372 fast tests pass**, mypy clean on
-32 modules; full suite **413 passed** (41 of them integration against live Qdrant).
+**Expected today:** `nox -s check` green, **420 fast tests pass**, mypy clean on
+35 modules; full suite **461 passed** (41 of them integration against live Qdrant).
 
 **Two venvs matter.** `nox` builds its own at `.nox/check` and installs only
 `.[dev]`, so it has **no torch**. `.venv` has the `ml` extra. A test that behaves
@@ -202,7 +202,7 @@ differently between them is testing the environment, not the code — see trap 6
 
 ---
 
-## Measured model behaviour — use these as the real baseline
+## Measured model behaviour and retrieval baselines
 
 | Check | Result |
 |---|---|
@@ -212,24 +212,19 @@ differently between them is testing the environment, not the code — see trap 6
 | CLIP figure vs itself / vs other figure | **1.0000 / 0.8160** ✅ |
 | CLIP **text→image**, correct (pump) panel | **0.2691** |
 | CLIP **text→image**, wrong (cabinet) panel | **0.2991** ❌ *wrong one wins* |
+| **Hash Doubles (no reranker)** | Recall@5: 0.4722, nDCG@5: 0.4059, MRR@10: 0.5556 |
+| **Hash Doubles (deterministic reranker)** | Recall@5: 0.5556, nDCG@5: 0.3908, MRR@10: 0.3681 |
+| **Real BGE-M3 + CLIP (no reranker)** | **Recall@5: 0.7222, nDCG@5: 0.6132, MRR@10: 0.8056** ✅ |
+| **Real BGE-M3 + CLIP (BGE / adapted reranker)** | *unmeasured* (weights not downloaded on host; fine-tuning pending #28) |
 
 **Do not claim text→image retrieval quality on this corpus.** Flat vector panels
 are far from CLIP's training distribution. Report text→image and image→image
 **separately** in the eval, and keep the VLM reading the figure (SPEC §8) as the
-primary path. Recorded in ADR 0007.
+primary path. Recorded in ADR 0007 and ADR 0008.
 
 ---
 
 ## Next steps, precisely
-
-### #15 — RRF fusion + reranker arms
-Build `retrieval/fusion.py` (reciprocal rank fusion, k=60 default in
-`RetrievalSettings.rrf_k`) over the text and image collections, plus a
-`Reranker` seam with **three** arms because SPEC §5 compares them: none,
-`BAAI/bge-reranker-v2-m3` base, and a fine-tuned adapter. Metrics:
-Recall@5, nDCG@5, MRR@10. **Report doubles vs real embeddings distinctly.** Add a
-`deterministic` reranker arm so the fast suite stays torch-free.
-Pitfall: text and image indexes are **1024-d and 512-d**; never mix vectors.
 
 ### #9 — Vertical slice
 Wire ingest → embed → index → retrieve → `render_sources` → `StubVlmProvider` →
