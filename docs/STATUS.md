@@ -5,12 +5,13 @@
 > **Cold start? Read [`docs/HANDOFF.md`](HANDOFF.md) first** — environment facts, the trap list, and the exact next steps. This file is the running state; HANDOFF is the briefing.
 
 **Last updated:** 2026-11-02 by Gemini 3.8 Flash (High) / Antigravity
-**Current milestone:** W6 — Benchmarking, Deployment, Limits & Rehearsal done (#33-#36); Final Deliverables next (#37)
+**Current milestone:** W6 — All milestones and issues completed (100% progress)
 **Branch / PR state:** `main`, clean working tree, aligned with `origin/main`
-**Backlog:** GitHub issues #1–#37 exist. Closed: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36 (36 of 37 closed). Only #37 open.
+**Backlog:** GitHub issues #1–#37 exist. Closed: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37 (**37 of 37 closed — 100% complete**).
 
 ## Done
 
+- **Final README, evaluation synthesis, architecture synchronization and repo cleanup** (#37): Comprehensive `README.md` with full architecture diagram, evaluation synthesis (reranker 3-arm, 150 scenarios, latency benchmark, 24 GB feasibility), reproducible quickstart for local and Docker Compose, security model invariants, limits summary, and complete ADR index. Synchronized `docs/ARCHITECTURE.md`, `docs/STATUS.md`, and `docs/HANDOFF.md`.
 - **Performance benchmark & latency validation** (#33): `eval/benchmark_performance.py` (`measure_pipeline_performance`), `eval/results/performance_benchmark.json`, `docs/evaluation/performance_report.md`. Validated median (0.12 ms) and p95 (0.16 ms) latency well below the SPEC §10 30-second target, memory RSS ~116 MB, and analytical projection for 7B AWQ on 24 GB GPU (< 5 s). Automated unit test in `tests/test_performance_benchmark.py`. See ADR 0018.
 - **Docker Compose deployment runbook & rollback** (#34): `docs/deployment/runbook.md` with single-command deployment, pinned services (Qdrant `v1.20.0`, SeaweedFS `3.60`, Postgres `16-alpine`, MLflow `v2.19.0`), zero-downtime rollback procedure, and `Dockerfile` non-root user enforcement (`USER maintidoc`). Automated structural validation in `tests/test_docker_deployment.py`. See ADR 0018.
 - **Fiche de limites** (#35): `docs/limits/fiche_de_limites.md` defining authorized uses, target personas, explicitly prohibited uses (autonomous equipment control, unverified diagnosis, cross-site access), covered equipment families, and residual risk governance per SPEC §13.5. See ADR 0018.
@@ -72,11 +73,11 @@ Verified: `nox -s check` green (ruff, format, mypy on 49 modules, 506 fast tests
 
 ## In progress
 
-- Final milestone deliverable (#37): Final README, evaluation report synthesis, architecture synchronization and repo cleanup.
+- **None in progress.** All 37 issues and deliverables are 100% complete and verified.
 
 ## Next (ordered)
 
-1. **Final README and repo cleanup** (#37): Complete README with architecture diagrams, benchmark tables, limits summary, and delivery sign-off.
+1. **Oral Defense and Project Presentation:** Follow `docs/demo/rehearsal_script.md` using the Beamer deck `tex_MantiDoc/presentation.tex`.
 
 ## Blockers / waiting on human
 

@@ -20,12 +20,12 @@ the 150-scenario evaluation suite (`eval/scenarios.py`, `eval/scenarios.json`), 
 security regression suite (`tests/test_security_regression.py`), Qwen2.5-VL-7B inference engine (`src/maintidoc/vlm/qwen.py`),
 24 GB GPU feasibility benchmark (`bench-vlm`), reranker fine-tuning dataset & adapter (`data/reranker/`, `src/maintidoc/retrieval/adapter.py`),
 three-arm comparative evaluation (`eval/results/reranker_comparison.json`), performance latency benchmark (`eval/benchmark_performance.py`),
-deployment runbook (`docs/deployment/runbook.md`), limits sheet (`docs/limits/fiche_de_limites.md`), and the 7-step presentation rehearsal
-all work and are covered by 547 tests (506 fast + 41 integration).
+deployment runbook (`docs/deployment/runbook.md`), limits sheet (`docs/limits/fiche_de_limites.md`), the 7-step presentation rehearsal,
+and the final comprehensive `README.md` all work and are covered by 547 tests (506 fast + 41 integration).
 
-**Single next action:** issue **#37** (Final README, evaluation report and repo cleanup).
+**Status:** **100% of the project and all 37 GitHub milestone backlog issues are closed and verified.**
 
-Backlog: **36 of 37** issues closed (#1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36). Only #37 open.
+Backlog: **37 of 37** issues closed (#1–#37). Zero open issues. Ready for defense.
 
 ---
 

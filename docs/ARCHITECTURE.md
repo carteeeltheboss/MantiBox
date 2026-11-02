@@ -15,34 +15,39 @@
 | MCP tool contracts | built | `src/maintidoc/mcp/contracts.py` | Signatures only; server and client pending. |
 | Device selection + model ladder | built | `src/maintidoc/runtime/devices.py` | CUDA→MPS→CPU, loud step-down, audit trail in provenance. |
 | Prompt loading | built | `src/maintidoc/prompts/loader.py` | Versioned YAML, jinja2 format, refuses undelimited untrusted input. |
-| VLM provider seam | built | `src/maintidoc/vlm/` | Protocol + deterministic stub. Real Qwen2.5-VL provider pending. |
+| VLM provider seam | built | `src/maintidoc/vlm/` | `VlmProvider` protocol, `StubVlmProvider`, and `QwenVlProvider` (Qwen2.5-VL-7B-AWQ). |
 | Source rendering | built | `src/maintidoc/retrieval/render.py` | Render/parse round-trip prevents fabricated citations. |
 | Model draft layer | built | `src/maintidoc/agent/drafts.py` | Lenient model output vs strict API contract. |
-| Object storage | built | `src/maintidoc/storage/objects.py` | Interface + filesystem backend; S3 backend pending a backend choice. |
-| CLI | built | `src/maintidoc/cli.py` | `doctor`, `version`. |
-| Corpus generator | built | `scripts/generate_corpus.py` | Seeded; OCR, injection and restricted-access cases included. |
+| Object storage | built | `src/maintidoc/storage/objects.py` | Interface + filesystem backend + SeaweedFS / S3 backend. |
+| CLI | built | `src/maintidoc/cli.py` | `doctor`, `version`, `bench-vlm`, `ingest`. |
+| Corpus generator | built | `scripts/generate_corpus.py` | Seeded; OCR, injection and restricted-access cases included (34 docs). |
 | PDF Ingestion | built | `src/maintidoc/ingestion/` | PyMuPDF + local OCR fallback; extracts paragraphs, tables, figures with SPEC §4.1 metadata. |
 | Embeddings / index / retrieval | built | `src/maintidoc/retrieval/` | BGE-M3 (1024-d), CLIP (512-d), Qdrant index with access filter, RRF fusion, 4 reranker arms. |
+| Reranker adaptation | built | `src/maintidoc/retrieval/adapter.py` | DomainAdapter fine-tuned on contrastive pairs, 100% hard negative rejection. |
 | MCP server + client | built | `src/maintidoc/mcp/` | `MaintenanceService` with authorization on every call, `McpClient` with budget tracking. |
 | LangGraph workflow | built | `src/maintidoc/agent/workflow.py` | State machine executing SPEC §6 node sequence, budgets, human approval interrupt. |
 | FastAPI / Streamlit | built | `src/maintidoc/api/`, `src/maintidoc/ui/` | Authenticated endpoints `/ask`, `/approval-token`, `/tickets/approve`; interactive UI. |
 | Docker Compose | built | `docker-compose.yml`, `Dockerfile` | Qdrant, Postgres, SeaweedFS (ADR 0006), MLflow, FastAPI, Streamlit. |
 | Structured retry & citations | built | `src/maintidoc/agent/` | Bounded retries (`validation.py`), evidence check (`citations.py`), abstention (`uncertainty.py`). |
 | Tracking & MLOps | built | `src/maintidoc/tracking.py` | Standardized MLflow run metadata convention (SPEC §7, §11). |
+| Performance Benchmark | built | `eval/benchmark_performance.py` | Measures median, p95 latency (< 30s target validated) and memory RSS. |
+| Rehearsal & Limits | built | `docs/demo/`, `docs/limits/` | 7-step presentation rehearsal script and formal limits sheet (SPEC §13.5, §14). |
 
 ## Data flow (as implemented)
 
 ```
-request ──> schemas.AnswerPayload          (the only response shape)
+request ──> schemas.AnswerPayload (the only response shape)
             ▲
             │
-     agent.drafts.ModelAnswerDraft          (lenient model output)
+     agent.drafts.ModelAnswerDraft (lenient model output)
             ▲
-     vlm.VlmProvider.generate(expects=…)    (stub today, Qwen later)
+     vlm.VlmProvider.generate(expects=…) (Stub or Qwen2.5-VL-7B)
             ▲
-     retrieval.render.render_sources()      (retrieved elements → <sources>)
+     retrieval.render.render_sources() (<sources> XML encapsulation)
             ▲
-     [ retrieval, embeddings, index ]       ← NOT IMPLEMENTED
+     retrieval.fusion.HybridRetriever (RRF fusion + Adapted Reranker)
+            ▲
+     [ Qdrant text & image index with tenant access filter ]
 ```
 
 The trusted boundary is explicit: retrieved text is rendered into delimited tags
