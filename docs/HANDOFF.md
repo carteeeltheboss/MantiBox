@@ -18,11 +18,12 @@ citation verification against evidence (`citations.py`), uncertainty and abstent
 the threat model (`docs/security/threat_model.md`), MLflow tracking conventions (`src/maintidoc/tracking.py`),
 the 150-scenario evaluation suite (`eval/scenarios.py`, `eval/scenarios.json`), prompt injection test suite (`tests/test_prompt_injection.py`),
 security regression suite (`tests/test_security_regression.py`), Qwen2.5-VL-7B inference engine (`src/maintidoc/vlm/qwen.py`),
-24 GB GPU feasibility benchmark (`bench-vlm`), and the complete SPEC §1 end-to-end ticket flow all work and are covered by 537 tests (496 fast + 41 integration).
+24 GB GPU feasibility benchmark (`bench-vlm`), reranker fine-tuning dataset & adapter (`data/reranker/`, `src/maintidoc/retrieval/adapter.py`),
+three-arm comparative evaluation (`eval/results/reranker_comparison.json`), and the complete SPEC §1 end-to-end ticket flow all work and are covered by 542 tests (501 fast + 41 integration).
 
-**Single next action:** issues **#27, #28, #29** (reranker dataset generation, fine-tuning adapter, and comparative evaluation).
+**Single next action:** issue **#33** (Performance benchmark: median and p95 latency, memory, GPU execution time).
 
-Backlog: **29 of 37** issues closed (#1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 30, 31, 32).
+Backlog: **32 of 37** issues closed (#1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32).
 
 ---
 
@@ -124,13 +125,13 @@ re-download; point loaders at these paths.
 | 150-scenario evaluation suite & multimodal lift | `eval/scenarios.py`, `eval/scenarios.json`, `scripts/generate_scenarios.py` | #6, #30 |
 | Prompt injection & security regression test suites | `tests/test_prompt_injection.py`, `tests/test_security_regression.py` | #31, #32 |
 | Qwen2.5-VL inference engine & 24 GB benchmark | `src/maintidoc/vlm/qwen.py`, `src/maintidoc/cli.py` (`bench-vlm`) | #16 |
+| Multilingual reranker dataset, adapter & three-arm comparison | `data/reranker/`, `src/maintidoc/retrieval/adapter.py`, `scripts/train_reranker.py` | #27, #28, #29 |
 | Corpus ingestion CLI | `src/maintidoc/cli.py` (`ingest`) | — |
 | `doctor` CLI | `cli.py` | — |
-| 16 ADRs, STATUS, ARCHITECTURE, session logs | `docs/` | — |
+| 17 ADRs, STATUS, ARCHITECTURE, session logs | `docs/` | — |
 
 ## What is NOT built
 
-- Reranker fine-tuning dataset generation & adapter training (`#27`–`#29`).
 - Performance benchmark (`#33`).
 - Docker Compose deployment validation & rollback procedure (`#34`).
 - Fiche de limites (`#35`).

@@ -41,7 +41,8 @@ corpus/images/
 corpus/rendered/
 # scratch corpus output from smoke tests (--corpus-dir .tmp-corpus)
 .tmp-corpus/
-data/
+data/*
+!data/reranker/
 qdrant_storage/
 pgdata/
 minio_data/

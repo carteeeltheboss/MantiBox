@@ -1,0 +1,23 @@
+{
+  "none": {
+    "recall@5": 1.0,
+    "ndcg@5": 0.6309,
+    "mrr@10": 0.5,
+    "hard_negative_rejection_rate": 0.0,
+    "evaluated_queries": 150.0
+  },
+  "bge": {
+    "recall@5": 1.0,
+    "ndcg@5": 0.8155,
+    "mrr@10": 0.75,
+    "hard_negative_rejection_rate": 0.5,
+    "evaluated_queries": 150.0
+  },
+  "adapter": {
+    "recall@5": 1.0,
+    "ndcg@5": 1.0,
+    "mrr@10": 1.0,
+    "hard_negative_rejection_rate": 1.0,
+    "evaluated_queries": 150.0
+  }
+}

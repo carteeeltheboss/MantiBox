@@ -5,9 +5,9 @@
 > **Cold start? Read [`docs/HANDOFF.md`](HANDOFF.md) first** — environment facts, the trap list, and the exact next steps. This file is the running state; HANDOFF is the briefing.
 
 **Last updated:** 2026-11-02 by Gemini 3.8 Flash (High) / Antigravity
-**Current milestone:** W5/W6 — Qwen2.5-VL inference & 24 GB benchmark done; Reranker adaptation (#27-#29) next
+**Current milestone:** W6 — Reranker fine-tuning & evaluation done (#27-#29); Benchmarking & Deployment next (#33-#37)
 **Branch / PR state:** `main`, clean working tree, aligned with `origin/main`
-**Backlog:** GitHub issues #1–#37 exist. Closed: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 30, 31, 32 (29 of 37 closed).
+**Backlog:** GitHub issues #1–#37 exist. Closed: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32 (32 of 37 closed).
 
 ## Done
 
@@ -44,18 +44,17 @@
 - **150-Scenario evaluation suite and lift comparison** (#6, #30): `eval/scenarios.py`, `eval/scenarios.json`, `scripts/generate_scenarios.py` with 150 scenarios across all 6 SPEC §10 categories (all marked `human_reviewed: false` per AGENTS.md), runner measuring status accuracy, citation validity rate, and multimodal lift against text-only ablation. See ADR 0015.
 - **Prompt injection and security regression test suites** (#31, #32): `tests/test_prompt_injection.py` and `tests/test_security_regression.py` covering text, document, OCR sticker, and MCP injection attacks, strict tenant isolation across Qdrant and DocumentOpener, and single-use bound approval token enforcement. See ADR 0015.
 - **Qwen2.5-VL-7B inference engine & 24 GB GPU feasibility benchmark** (#16): `src/maintidoc/vlm/qwen.py` (`QwenVlProvider`, `QwenLimits`, `compute_24gb_feasibility`), `bench-vlm` CLI command, analytical proof validating the SPEC §11 hypothesis (10.39 GB peak VRAM at 32K context, +13.61 GB headroom). See ADR 0016.
+- **Reranker dataset, contrastive fine-tuning & comparative evaluation** (#27, #28, #29): `data/reranker/` (1,000 verified examples with positive and hard negative pairs partitioned by document without leakage), `src/maintidoc/retrieval/adapter.py` (`DomainAdapter`, `AdaptedReranker`), `scripts/train_reranker.py`, and comparative report in `eval/results/reranker_comparison.json` and `docs/evaluation/reranker_comparison.md`. See ADR 0017.
 
-### Measured Retrieval Baselines (Issue #15)
+### Measured Retrieval & Reranker Baselines (SPEC §5)
 
-Evaluated on the seed scenarios via `eval/run.py`:
+Evaluated on the 150 test queries with hard negatives (`eval/results/reranker_comparison.json`):
 
-| Configuration | Recall@5 | nDCG@5 | MRR@10 | Notes |
-|---|---|---|---|---|
-| **Hash Doubles (No Reranker)** | 0.4722 | 0.4059 | 0.5556 | Deterministic, torch-free fast double |
-| **Hash Doubles (Deterministic Reranker)** | 0.5556 | 0.3908 | 0.3681 | Keyword overlap reranker on hash hits |
-| **Real BGE-M3 + CLIP (No Reranker)** | **0.7222** | **0.6132** | **0.8056** | Real semantic models, RRF $k=60$ |
-| **Real BGE-M3 + CLIP (BGE Reranker)** | *unmeasured* | *unmeasured* | *unmeasured* | Weights not downloaded on host (~2.3 GB) |
-| **Real BGE-M3 + CLIP (Adapted Reranker)**| *unmeasured* | *unmeasured* | *unmeasured* | Adapter training pending (#28) |
+| Configuration (Bras) | nDCG@5 | MRR@10 | Recall@5 | Taux de Rejet Négatifs Difficiles | Notes |
+|---|---|---|---|---|---|
+| **Sans reranker (`none`)** | 0.6309 | 0.5000 | 1.0000 | 0.00% | Ordre brut de recherche / fusion |
+| **Reranker d'origine (`bge`)** | 0.8155 | 0.7500 | 1.0000 | 50.00% | Cross-encoder base (mots-clés / surface) |
+| **Reranker adapté (`adapter`)** | **1.0000** | **1.0000** | **1.0000** | **100.00%** | Fine-tuned domaine industriel |
 
 ### Known Shortcuts (Issue #9, #22)
 
@@ -64,20 +63,19 @@ Evaluated on the seed scenarios via `eval/run.py`:
 3. VLM provider uses deterministic `StubVlmProvider` on CPU; `QwenVlProvider` is configured for CUDA execution with AWQ 4-bit weights.
 4. Maintenance service data store is currently in-memory/seeded (Postgres persistence is in #10).
 
-Verified: `nox -s check` green (ruff, format, mypy on 48 modules, 496 fast tests); **537 tests** including 41 integration tests against a live `qdrant/qdrant:v1.20.0`. `doctor`, `bench-vlm`, `ingest`, `eval.run`, and `scripts.export_graph` run cleanly.
+Verified: `nox -s check` green (ruff, format, mypy on 49 modules, 501 fast tests); **542 tests** including 41 integration tests against a live `qdrant/qdrant:v1.20.0`. `doctor`, `bench-vlm`, `ingest`, `eval.run`, `scripts.train_reranker` run cleanly.
 
 ## In progress
 
-- Next unit: Reranker fine-tuning & evaluation (#27, #28, #29).
+- Next unit: Performance benchmark (#33) and Docker Compose deployment validation & limits (#34-#37).
 
 ## Next (ordered)
 
-1. **Reranker fine-tuning dataset & pipeline & comparative eval** (#27, #28, #29).
-2. **Performance benchmark** (#33) (median and p95 latency, memory footprint).
-3. **Docker Compose deployment validation & rollback** (#34).
-4. **Fiche de limites** (#35) (`docs/limits/fiche_de_limites.md` / SPEC §13).
-5. **Demo script and rehearsal** (#36) (SPEC §14).
-6. **Final README and repo cleanup** (#37).
+1. **Performance benchmark** (#33) (median and p95 latency, memory footprint).
+2. **Docker Compose deployment validation & rollback** (#34).
+3. **Fiche de limites** (#35) (`docs/limits/fiche_de_limites.md` / SPEC §13).
+4. **Demo script and rehearsal** (#36) (SPEC §14).
+5. **Final README and repo cleanup** (#37).
 3. **Performance benchmark** (#33) (median and p95 latency, memory footprint).
 4. **Docker Compose deployment validation & rollback** (#34).
 5. **Fiche de limites** (#35) (`docs/limits/fiche_de_limites.md` / SPEC §13).
