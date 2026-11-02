@@ -8,15 +8,16 @@ unverified it says so.
 
 ## TL;DR
 
-The **foundation is complete and tested; retrieval fusion and reranker arms are in place.** Ingestion,
-both embedding towers, both vector indexes, access control, RRF multimodal fusion and the reranker seam
-all work and are covered by 461 tests. **No question can be answered yet:** the VLM provider, the
-MCP server, the LangGraph workflow, the API, the UI and Docker do not exist.
+The **foundation, retrieval fusion and vertical slice are complete and tested.** Ingestion,
+both embedding towers, both vector indexes, access control, RRF multimodal fusion, the reranker seam,
+and the end-to-end question answering pipeline (`AnswerPipeline`) all work and are covered by 465 tests.
+**Questions can now be answered through the deterministic stub:** the real VLM provider, the
+MCP server, the LangGraph workflow, the API, the UI and Docker do not exist yet.
 
-**Single next action:** issue **#9** (the vertical slice: question -> retrieve -> render_sources -> stub VLM -> citation verification -> AnswerPayload),
-then **#22/#23** (MCP server + client), then **#24** (LangGraph workflow).
+**Single next action:** issue **#22/#23** (MCP maintenance server + client with per-call authorization),
+then **#24** (LangGraph workflow: node sequence, budgets, human-approval interrupt).
 
-Backlog: **11 of 37** issues closed (#1, 2, 3, 4, 8, 11, 12, 13, 14, 15, 17).
+Backlog: **12 of 37** issues closed (#1, 2, 3, 4, 8, 9, 11, 12, 13, 14, 15, 17).
 
 ---
 
@@ -104,8 +105,9 @@ re-download; point loaders at these paths.
 | Two-tower CLIP image embedder + 512-d image index | `retrieval/images.py` | #13 |
 | Deny-before-fetch document/figure opening | `retrieval/access.py` | #14 |
 | RRF fusion, reranker arms, retrieval metrics | `retrieval/fusion.py`, `retrieval/reranker.py`, `retrieval/metrics.py`, `eval/run.py` | #15 |
+| Vertical slice RAG pipeline (`AnswerPipeline`) | `src/maintidoc/agent/pipeline.py` | #9 |
 | `doctor` CLI | `cli.py` | — |
-| 8 ADRs, STATUS, ARCHITECTURE, session logs | `docs/` | — |
+| 9 ADRs, STATUS, ARCHITECTURE, session logs | `docs/` | — |
 
 ## What is NOT built
 
@@ -139,8 +141,8 @@ docker run -d --name maintidoc-qdrant -p 6333:6333 -p 6334:6334 qdrant/qdrant:v1
 .venv\Scripts\python.exe scripts\generate_corpus.py
 ```
 
-**Expected today:** `nox -s check` green, **420 fast tests pass**, mypy clean on
-35 modules; full suite **461 passed** (41 of them integration against live Qdrant).
+**Expected today:** `nox -s check` green, **424 fast tests pass**, mypy clean on
+36 modules; full suite **465 passed** (41 of them integration against live Qdrant).
 
 **Two venvs matter.** `nox` builds its own at `.nox/check` and installs only
 `.[dev]`, so it has **no torch**. `.venv` has the `ml` extra. A test that behaves
@@ -226,11 +228,9 @@ primary path. Recorded in ADR 0007 and ADR 0008.
 
 ## Next steps, precisely
 
-### #9 — Vertical slice
-Wire ingest → embed → index → retrieve → `render_sources` → `StubVlmProvider` →
-citation verification → `AnswerPayload`. This is the first runnable demo.
-Pitfall: an `answered` payload **must** cite; the stub already refuses to invent
-citations, so an empty retrieval set must produce `abstained`.
+### #22/#23 — MCP maintenance server and client
+Implement the MCP server exposing `get_equipment_history`, `get_open_tickets`, and `create_ticket`
+with server-side authorization on EVERY call (AGENTS.md NEVER #2). Wire client into LangGraph.
 
 ### #10 — Docker Compose
 Services: `qdrant`, `postgres:16.15-alpine`, **SeaweedFS** (pin a real tag —
