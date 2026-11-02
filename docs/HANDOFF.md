@@ -8,16 +8,17 @@ unverified it says so.
 
 ## TL;DR
 
-The **foundation, retrieval fusion, vertical slice, and MCP server are complete and tested.** Ingestion,
+The **foundation, retrieval fusion, vertical slice, MCP server, client, and LangGraph workflow are complete and tested.** Ingestion,
 both embedding towers, both vector indexes, access control, RRF multimodal fusion, the reranker seam,
-the end-to-end question answering pipeline (`AnswerPipeline`), and the MCP maintenance service (`MaintenanceService`)
-with per-call authorization and single-use approval token verification all work and are covered by 475 tests.
-**Questions can now be answered through the deterministic stub:** the real VLM provider, the
-MCP client, the LangGraph workflow, the API, the UI and Docker do not exist yet.
+the end-to-end question answering pipeline (`AnswerPipeline`), the MCP maintenance service (`MaintenanceService`),
+the MCP client (`McpClient`), the LangGraph state machine (`src/maintidoc/agent/workflow.py`), budgets (SPEC §9),
+and single-use approval token verification all work and are covered by 490 tests.
+**Questions can now be answered and tickets proposed through the state machine:** the real VLM provider (7B CUDA),
+the API, the UI and Docker Compose are next.
 
-**Single next action:** issue **#23/#24** (MCP client and LangGraph workflow: node sequence, budgets, human-approval interrupt).
+**Single next action:** issue **#26** (End-to-end ticket flow: draft -> approve -> create) and **#21** (FastAPI + Streamlit).
 
-Backlog: **13 of 37** issues closed (#1, 2, 3, 4, 8, 9, 11, 12, 13, 14, 15, 17, 22).
+Backlog: **16 of 37** issues closed (#1, 2, 3, 4, 8, 9, 11, 12, 13, 14, 15, 17, 22, 23, 24, 25).
 
 ---
 

@@ -5,9 +5,9 @@
 > **Cold start? Read [`docs/HANDOFF.md`](HANDOFF.md) first** — environment facts, the trap list, and the exact next steps. This file is the running state; HANDOFF is the briefing.
 
 **Last updated:** 2026-11-02 by Gemini 3.8 Flash (High) / Antigravity
-**Current milestone:** W4 Agent et MCP — MCP server done, client & LangGraph next
+**Current milestone:** W4 Agent et MCP — MCP server, client & LangGraph done; ticket flow & FastAPI next
 **Branch / PR state:** `main`, clean working tree, aligned with `origin/main`
-**Backlog:** GitHub issues #1–#37 exist. Closed: 1, 2, 3, 4, 8, 9, 11, 12, 13, 14, 15, 17, 22 (13 of 37 closed).
+**Backlog:** GitHub issues #1–#37 exist. Closed: 1, 2, 3, 4, 8, 9, 11, 12, 13, 14, 15, 17, 22, 23, 24, 25 (16 of 37 closed).
 
 ## Done
 
@@ -33,6 +33,7 @@
 - **RRF fusion + reranker arms + retrieval metrics** (#15): `retrieval/fusion.py` (Reciprocal Rank Fusion, default $k=60$ via `RetrievalSettings.rrf_k`, deduplication and channel attribution), `retrieval/reranker.py` with all four arms (`none`, `deterministic`, `bge`, `adapter`), `retrieval/metrics.py` (Recall@5, nDCG@5, MRR@10) with resilient MLflow logging, `eval/run.py` and `eval/benchmark_data.py`. See ADR 0008.
 - **Vertical slice** (#9): `src/maintidoc/agent/pipeline.py` (`AnswerPipeline`) wiring Question → `HybridRetriever` → `render_sources` → `StubVlmProvider` → `verify_citations` → `AnswerPayload`. Real citation verification strips unretrieved elements and enforces automatic abstention when evidence is missing. Tested against real corpus documents and seed scenarios. See ADR 0009.
 - **MCP maintenance server with authorization on every call** (#22): `src/maintidoc/mcp/server.py` (`MaintenanceDatabase`, `MaintenanceService`) implementing `get_equipment_history`, `get_open_tickets`, `create_ticket`. Enforces active status, API key comparison, budget limit (SPEC §9 max 3 calls), equipment existence check (no enumeration oracle), and row-level access filtering. Idempotency and single-use approval token verification (SPEC §6, AGENTS.md NEVER #2, NEVER #3). See ADR 0010.
+- **MCP client, LangGraph workflow state machine and budgets** (#23, #24, #25): `src/maintidoc/mcp/client.py` (`McpClient` with request tracking and caller budget decrement), `src/maintidoc/agent/workflow.py` (`StateGraph` state machine following SPEC §6 sequence: `verify_access` → `analyze_request` → `retrieve_sources` → `consult_history` → `build_and_verify_response` → `draft_ticket` → `wait_human_approval` → `create_ticket` → `finalize`). Enforces SPEC §9 budgets (max 3 MCP calls, max 6 model calls, 60s wall-clock limit, 10 MB image size limit). Human approval interrupt state requiring bound token. Exported graph diagram to `docs/architecture/workflow_graph.md`. See ADR 0011.
 
 ### Measured Retrieval Baselines (Issue #15)
 
@@ -53,15 +54,15 @@ Evaluated on the seed scenarios via `eval/run.py`:
 3. VLM provider uses deterministic `StubVlmProvider` until CUDA environment is ready for the 7B (#16).
 4. Maintenance service data store is currently in-memory/seeded (Postgres persistence is in #10).
 
-Verified: `nox -s check` green (ruff, format, mypy on 37 modules, 434 fast tests); **475 tests** including 41 integration tests against a live `qdrant/qdrant:v1.20.0`. `doctor` and `eval.run` run cleanly.
+Verified: `nox -s check` green (ruff, format, mypy on 39 modules, 449 fast tests); **490 tests** including 41 integration tests against a live `qdrant/qdrant:v1.20.0`. `doctor`, `eval.run`, and `scripts.export_graph` run cleanly.
 
 ## In progress
 
-- Next unit: MCP client and LangGraph workflow (#23, #24).
+- Next unit: End-to-end ticket flow and FastAPI UI (#26, #21).
 
 ## Next (ordered)
 
-1. **MCP client and LangGraph workflow** (#23, #24): SPEC §6 node sequence, budgets, human-approval interrupt.
+1. **End-to-end ticket flow demo scenario** (#26).
 2. **FastAPI + Streamlit** (#21).
 3. **Docker Compose** (#10, SeaweedFS per ADR 0006).
 4. **Eval harness expansion** (#6, #30) with ~150 scenarios.
