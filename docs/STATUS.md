@@ -5,9 +5,9 @@
 > **Cold start? Read [`docs/HANDOFF.md`](HANDOFF.md) first** — environment facts, the trap list, and the exact next steps. This file is the running state; HANDOFF is the briefing.
 
 **Last updated:** 2026-11-02 by Gemini 3.8 Flash (High) / Antigravity
-**Current milestone:** W4 Agent et MCP — MCP server, client & LangGraph done; ticket flow & FastAPI next
+**Current milestone:** W4 Agent et MCP — FastAPI & Streamlit UI done, Docker Compose & Eval expansion next
 **Branch / PR state:** `main`, clean working tree, aligned with `origin/main`
-**Backlog:** GitHub issues #1–#37 exist. Closed: 1, 2, 3, 4, 8, 9, 11, 12, 13, 14, 15, 17, 22, 23, 24, 25 (16 of 37 closed).
+**Backlog:** GitHub issues #1–#37 exist. Closed: 1, 2, 3, 4, 8, 9, 11, 12, 13, 14, 15, 17, 21, 22, 23, 24, 25, 26 (18 of 37 closed).
 
 ## Done
 
@@ -34,6 +34,7 @@
 - **Vertical slice** (#9): `src/maintidoc/agent/pipeline.py` (`AnswerPipeline`) wiring Question → `HybridRetriever` → `render_sources` → `StubVlmProvider` → `verify_citations` → `AnswerPayload`. Real citation verification strips unretrieved elements and enforces automatic abstention when evidence is missing. Tested against real corpus documents and seed scenarios. See ADR 0009.
 - **MCP maintenance server with authorization on every call** (#22): `src/maintidoc/mcp/server.py` (`MaintenanceDatabase`, `MaintenanceService`) implementing `get_equipment_history`, `get_open_tickets`, `create_ticket`. Enforces active status, API key comparison, budget limit (SPEC §9 max 3 calls), equipment existence check (no enumeration oracle), and row-level access filtering. Idempotency and single-use approval token verification (SPEC §6, AGENTS.md NEVER #2, NEVER #3). See ADR 0010.
 - **MCP client, LangGraph workflow state machine and budgets** (#23, #24, #25): `src/maintidoc/mcp/client.py` (`McpClient` with request tracking and caller budget decrement), `src/maintidoc/agent/workflow.py` (`StateGraph` state machine following SPEC §6 sequence: `verify_access` → `analyze_request` → `retrieve_sources` → `consult_history` → `build_and_verify_response` → `draft_ticket` → `wait_human_approval` → `create_ticket` → `finalize`). Enforces SPEC §9 budgets (max 3 MCP calls, max 6 model calls, 60s wall-clock limit, 10 MB image size limit). Human approval interrupt state requiring bound token. Exported graph diagram to `docs/architecture/workflow_graph.md`. See ADR 0011.
+- **FastAPI backend, Streamlit UI and end-to-end ticket flow** (#21, #26): `src/maintidoc/api/app.py` (`create_app` with `/health`, `/ask`, `/approval-token`, `/tickets/approve`, `/equipment/{id}/history`, `/equipment/{id}/tickets`), header-based principal authentication, image size enforcement. `src/maintidoc/ui/app.py` (Streamlit interface for technician questions, photo upload, citations/uncertainties expanders, interactive ticket approval, MCP live query). Verified SPEC §1 scenario end-to-end. See ADR 0012.
 
 ### Measured Retrieval Baselines (Issue #15)
 
@@ -54,20 +55,19 @@ Evaluated on the seed scenarios via `eval/run.py`:
 3. VLM provider uses deterministic `StubVlmProvider` until CUDA environment is ready for the 7B (#16).
 4. Maintenance service data store is currently in-memory/seeded (Postgres persistence is in #10).
 
-Verified: `nox -s check` green (ruff, format, mypy on 39 modules, 449 fast tests); **490 tests** including 41 integration tests against a live `qdrant/qdrant:v1.20.0`. `doctor`, `eval.run`, and `scripts.export_graph` run cleanly.
+Verified: `nox -s check` green (ruff, format, mypy on 43 modules, 455 fast tests); **496 tests** including 41 integration tests against a live `qdrant/qdrant:v1.20.0`. `doctor`, `eval.run`, and `scripts.export_graph` run cleanly.
 
 ## In progress
 
-- Next unit: End-to-end ticket flow and FastAPI UI (#26, #21).
+- Next unit: Docker Compose and services (#10).
 
 ## Next (ordered)
 
-1. **End-to-end ticket flow demo scenario** (#26).
-2. **FastAPI + Streamlit** (#21).
-3. **Docker Compose** (#10, SeaweedFS per ADR 0006).
-4. **Eval harness expansion** (#6, #30) with ~150 scenarios.
-5. **`bench-vlm`** (#16), then measured VRAM recorded in ADR 0003.
-6. **Threat model** (#5) and **MLflow convention** (#7).
+1. **Docker Compose: Qdrant, PostgreSQL, SeaweedFS** (#10, SeaweedFS per ADR 0006).
+2. **Eval harness expansion** (#6, #30) with ~150 scenarios.
+3. **Structured output retry & citation verification** (#18, #19, #20).
+4. **`bench-vlm`** (#16), then measured VRAM recorded in ADR 0003.
+5. **Threat model** (#5) and **MLflow convention** (#7).
 
 ## Blockers / waiting on human
 

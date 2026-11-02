@@ -39,6 +39,7 @@ dependencies = [
   # See ADR 0005.
   "jinja2>=3.1",
   "typer>=0.13",
+  "streamlit>=1.40",
 ]
 
 [project.optional-dependencies]
@@ -88,6 +89,7 @@ select = ["E", "F", "I", "B", "UP", "S", "T20", "C4", "SIM", "RET", "ARG", "PTH"
 ignore = [
   "RET504",  # gratuitous assignment before return; hurts readability here
   "ARG002",  # unused method args are normal in provider/protocol implementations
+  "B008",    # function call in argument defaults (standard for FastAPI Depends/Form/File)
 ]
 
 [tool.ruff.lint.per-file-ignores]
