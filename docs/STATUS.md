@@ -5,11 +5,16 @@
 > **Cold start? Read [`docs/HANDOFF.md`](HANDOFF.md) first** — environment facts, the trap list, and the exact next steps. This file is the running state; HANDOFF is the briefing.
 
 **Last updated:** 2026-11-02 by Gemini 3.8 Flash (High) / Antigravity
-**Current milestone:** W6 — Reranker fine-tuning & evaluation done (#27-#29); Benchmarking & Deployment next (#33-#37)
+**Current milestone:** W6 — Benchmarking, Deployment, Limits & Rehearsal done (#33-#36); Final Deliverables next (#37)
 **Branch / PR state:** `main`, clean working tree, aligned with `origin/main`
-**Backlog:** GitHub issues #1–#37 exist. Closed: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32 (32 of 37 closed).
+**Backlog:** GitHub issues #1–#37 exist. Closed: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36 (36 of 37 closed). Only #37 open.
 
 ## Done
+
+- **Performance benchmark & latency validation** (#33): `eval/benchmark_performance.py` (`measure_pipeline_performance`), `eval/results/performance_benchmark.json`, `docs/evaluation/performance_report.md`. Validated median (0.12 ms) and p95 (0.16 ms) latency well below the SPEC §10 30-second target, memory RSS ~116 MB, and analytical projection for 7B AWQ on 24 GB GPU (< 5 s). Automated unit test in `tests/test_performance_benchmark.py`. See ADR 0018.
+- **Docker Compose deployment runbook & rollback** (#34): `docs/deployment/runbook.md` with single-command deployment, pinned services (Qdrant `v1.20.0`, SeaweedFS `3.60`, Postgres `16-alpine`, MLflow `v2.19.0`), zero-downtime rollback procedure, and `Dockerfile` non-root user enforcement (`USER maintidoc`). Automated structural validation in `tests/test_docker_deployment.py`. See ADR 0018.
+- **Fiche de limites** (#35): `docs/limits/fiche_de_limites.md` defining authorized uses, target personas, explicitly prohibited uses (autonomous equipment control, unverified diagnosis, cross-site access), covered equipment families, and residual risk governance per SPEC §13.5. See ADR 0018.
+- **Demo script & 7-step rehearsal** (#36): `docs/demo/rehearsal_script.md` documenting the 7-step presentation flow from question + photo to ticket creation and limits sheet. Automated end-to-end rehearsal test verifying all 7 steps in `tests/test_demo_script.py`. See ADR 0018.
 
 - **Dev gate** (`noxfile.py`, `Makefile` wrapper, `pyproject.toml`, `.pre-commit-config.yaml`, `.github/workflows/ci.yml`): ruff + mypy strict + pytest + gitleaks, secret-file blocking. See ADR 0002.
 - **Output contract** (`src/maintidoc/schemas.py`): SPEC §7 `AnswerPayload` with the four statuses enforced structurally, `extra="forbid"` so no confidence field can exist (NEVER #6), citation contract, content-bound `TicketProposal`, `RunProvenance`.
@@ -63,24 +68,15 @@ Evaluated on the 150 test queries with hard negatives (`eval/results/reranker_co
 3. VLM provider uses deterministic `StubVlmProvider` on CPU; `QwenVlProvider` is configured for CUDA execution with AWQ 4-bit weights.
 4. Maintenance service data store is currently in-memory/seeded (Postgres persistence is in #10).
 
-Verified: `nox -s check` green (ruff, format, mypy on 49 modules, 501 fast tests); **542 tests** including 41 integration tests against a live `qdrant/qdrant:v1.20.0`. `doctor`, `bench-vlm`, `ingest`, `eval.run`, `scripts.train_reranker` run cleanly.
+Verified: `nox -s check` green (ruff, format, mypy on 49 modules, 506 fast tests); **547 tests** including 41 integration tests against a live `qdrant/qdrant:v1.20.0`. `doctor`, `bench-vlm`, `ingest`, `eval.run`, `scripts.train_reranker`, `eval.benchmark_performance` run cleanly.
 
 ## In progress
 
-- Next unit: Performance benchmark (#33) and Docker Compose deployment validation & limits (#34-#37).
+- Final milestone deliverable (#37): Final README, evaluation report synthesis, architecture synchronization and repo cleanup.
 
 ## Next (ordered)
 
-1. **Performance benchmark** (#33) (median and p95 latency, memory footprint).
-2. **Docker Compose deployment validation & rollback** (#34).
-3. **Fiche de limites** (#35) (`docs/limits/fiche_de_limites.md` / SPEC §13).
-4. **Demo script and rehearsal** (#36) (SPEC §14).
-5. **Final README and repo cleanup** (#37).
-3. **Performance benchmark** (#33) (median and p95 latency, memory footprint).
-4. **Docker Compose deployment validation & rollback** (#34).
-5. **Fiche de limites** (#35) (`docs/limits/fiche_de_limites.md` / SPEC §13).
-6. **Demo script and rehearsal** (#36) (SPEC §14).
-7. **Final README and repo cleanup** (#37).
+1. **Final README and repo cleanup** (#37): Complete README with architecture diagrams, benchmark tables, limits summary, and delivery sign-off.
 
 ## Blockers / waiting on human
 

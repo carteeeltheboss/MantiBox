@@ -19,11 +19,13 @@ the threat model (`docs/security/threat_model.md`), MLflow tracking conventions 
 the 150-scenario evaluation suite (`eval/scenarios.py`, `eval/scenarios.json`), prompt injection test suite (`tests/test_prompt_injection.py`),
 security regression suite (`tests/test_security_regression.py`), Qwen2.5-VL-7B inference engine (`src/maintidoc/vlm/qwen.py`),
 24 GB GPU feasibility benchmark (`bench-vlm`), reranker fine-tuning dataset & adapter (`data/reranker/`, `src/maintidoc/retrieval/adapter.py`),
-three-arm comparative evaluation (`eval/results/reranker_comparison.json`), and the complete SPEC §1 end-to-end ticket flow all work and are covered by 542 tests (501 fast + 41 integration).
+three-arm comparative evaluation (`eval/results/reranker_comparison.json`), performance latency benchmark (`eval/benchmark_performance.py`),
+deployment runbook (`docs/deployment/runbook.md`), limits sheet (`docs/limits/fiche_de_limites.md`), and the 7-step presentation rehearsal
+all work and are covered by 547 tests (506 fast + 41 integration).
 
-**Single next action:** issue **#33** (Performance benchmark: median and p95 latency, memory, GPU execution time).
+**Single next action:** issue **#37** (Final README, evaluation report and repo cleanup).
 
-Backlog: **32 of 37** issues closed (#1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32).
+Backlog: **36 of 37** issues closed (#1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36). Only #37 open.
 
 ---
 

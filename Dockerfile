@@ -27,6 +27,10 @@ COPY src/ src/
 COPY prompts/ prompts/
 COPY docs/ docs/
 
+# Create non-root user
+RUN useradd -m -u 1000 maintidoc && chown -R maintidoc:maintidoc /app
+USER maintidoc
+
 EXPOSE 8000 8501
 
 CMD ["uvicorn", "maintidoc.api.app:create_app_from_env", "--host", "0.0.0.0", "--port", "8000"]
