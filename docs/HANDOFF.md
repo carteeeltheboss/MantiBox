@@ -17,11 +17,12 @@ Docker Compose orchestration (`Dockerfile` + `docker-compose.yml`), structured o
 citation verification against evidence (`citations.py`), uncertainty and abstention handling (`uncertainty.py`),
 the threat model (`docs/security/threat_model.md`), MLflow tracking conventions (`src/maintidoc/tracking.py`),
 the 150-scenario evaluation suite (`eval/scenarios.py`, `eval/scenarios.json`), prompt injection test suite (`tests/test_prompt_injection.py`),
-security regression suite (`tests/test_security_regression.py`), and the complete SPEC §1 end-to-end ticket flow all work and are covered by 524 tests (483 fast + 41 integration).
+security regression suite (`tests/test_security_regression.py`), Qwen2.5-VL-7B inference engine (`src/maintidoc/vlm/qwen.py`),
+24 GB GPU feasibility benchmark (`bench-vlm`), and the complete SPEC §1 end-to-end ticket flow all work and are covered by 537 tests (496 fast + 41 integration).
 
-**Single next action:** issue **#16** (Qwen2.5-VL 7B inference engine `src/maintidoc/vlm/qwen.py` & benchmark).
+**Single next action:** issues **#27, #28, #29** (reranker dataset generation, fine-tuning adapter, and comparative evaluation).
 
-Backlog: **28 of 37** issues closed (#1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 30, 31, 32).
+Backlog: **29 of 37** issues closed (#1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 30, 31, 32).
 
 ---
 
@@ -122,12 +123,13 @@ re-download; point loaders at these paths.
 | Standardized MLflow run metadata convention | `src/maintidoc/tracking.py` | #7 |
 | 150-scenario evaluation suite & multimodal lift | `eval/scenarios.py`, `eval/scenarios.json`, `scripts/generate_scenarios.py` | #6, #30 |
 | Prompt injection & security regression test suites | `tests/test_prompt_injection.py`, `tests/test_security_regression.py` | #31, #32 |
+| Qwen2.5-VL inference engine & 24 GB benchmark | `src/maintidoc/vlm/qwen.py`, `src/maintidoc/cli.py` (`bench-vlm`) | #16 |
+| Corpus ingestion CLI | `src/maintidoc/cli.py` (`ingest`) | — |
 | `doctor` CLI | `cli.py` | — |
-| 15 ADRs, STATUS, ARCHITECTURE, session logs | `docs/` | — |
+| 16 ADRs, STATUS, ARCHITECTURE, session logs | `docs/` | — |
 
 ## What is NOT built
 
-- `vlm/qwen.py` — the real Qwen2.5-VL provider & benchmark (`#16`).
 - Reranker fine-tuning dataset generation & adapter training (`#27`–`#29`).
 - Performance benchmark (`#33`).
 - Docker Compose deployment validation & rollback procedure (`#34`).

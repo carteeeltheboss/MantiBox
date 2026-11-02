@@ -282,5 +282,130 @@ def doctor(
         raise typer.Exit(code=1)
 
 
+@app.command(name="bench-vlm")
+def bench_vlm(
+    target_vram: Annotated[
+        float,
+        typer.Option("--target-vram", help="Target VRAM in GB (default 24.0 GB per SPEC §11)"),
+    ] = 24.0,
+    as_json: Annotated[bool, typer.Option("--json", help="machine-readable output")] = False,
+) -> None:
+    """Benchmark VLM memory footprint and validate SPEC §11 24 GB GPU hypothesis."""
+    from maintidoc.vlm.qwen import compute_24gb_feasibility
+
+    report = compute_24gb_feasibility(target_vram_gb=target_vram)
+
+    if as_json:
+        payload = {
+            "model_id": report.model_id,
+            "quantization": report.quantization,
+            "weights_vram_gb": report.weights_vram_gb,
+            "target_vram_gb": report.target_vram_gb,
+            "spec_hypothesis_validated": report.spec_hypothesis_validated,
+            "notes": report.notes,
+            "architecture": report.architecture,
+            "profiles": {
+                str(ctx): {
+                    "context_tokens": p.context_tokens,
+                    "kv_cache_vram_gb": p.kv_cache_vram_gb,
+                    "activations_vram_gb": p.activations_vram_gb,
+                    "total_vram_gb": p.total_vram_gb,
+                    "fits_24gb": p.fits_24gb,
+                    "margin_gb": p.margin_gb,
+                }
+                for ctx, p in report.profiles.items()
+            },
+        }
+        typer.echo(json.dumps(payload, indent=2, ensure_ascii=False))
+        return
+
+    typer.echo("=" * 75)
+    typer.echo("MaintiDoc — Qwen2.5-VL-7B Feasibility Benchmark (SPEC §11)")
+    typer.echo("=" * 75)
+    typer.echo(f"Model: {report.model_id} (Quantization: AWQ 4-bit)")
+    typer.echo(f"Target VRAM: {report.target_vram_gb:.1f} GB")
+    typer.echo(f"Base Weights VRAM: ~{report.weights_vram_gb:.2f} GB (Backbone AWQ + Vision FP16)")
+    typer.echo("\nContext Profiles:")
+    header = (
+        f"{'Context':<12} | {'KV Cache':<10} | {'Activations':<12} | "
+        f"{'Total VRAM':<11} | {'Fits Target?':<12} | Headroom"
+    )
+    typer.echo(header)
+    typer.echo("-" * 75)
+    for ctx, p in report.profiles.items():
+        fits_str = "YES" if p.fits_24gb else "NO"
+        sign = "+" if p.margin_gb >= 0 else ""
+        margin_str = f"{sign}{p.margin_gb:.2f} GB"
+        row = (
+            f"{ctx:<12,d} | {p.kv_cache_vram_gb:<10.2f} | {p.activations_vram_gb:<12.2f} | "
+            f"{p.total_vram_gb:<11.2f} | {fits_str:<12} | {margin_str}"
+        )
+        typer.echo(row)
+    typer.echo("=" * 75)
+    status_msg = "VALIDATED" if report.spec_hypothesis_validated else "INVALIDATED"
+    typer.echo(f"\nSPEC §11 Hypothesis: {status_msg}")
+    typer.echo(f"  {report.notes}\n")
+
+
+@app.command(name="ingest")
+def ingest(
+    corpus_dir: Annotated[
+        Path, typer.Option("--corpus-dir", help="corpus directory to ingest")
+    ] = CORPUS_DIR,
+    _batch_size: Annotated[int, typer.Option("--batch-size", help="batch size for indexing")] = 16,
+) -> None:
+    """Run ingestion on the document corpus and index into Qdrant."""
+    manifest_path = corpus_dir / "manifest.json"
+    if not manifest_path.exists():
+        typer.echo(
+            f"Corpus manifest not found at {manifest_path}. Run `nox -s corpus` first.", err=True
+        )
+        raise typer.Exit(code=1)
+
+    with manifest_path.open("r", encoding="utf-8") as f:
+        manifest_data = json.load(f)
+
+    docs_list = (
+        manifest_data.get("documents", []) if isinstance(manifest_data, dict) else manifest_data
+    )
+    typer.echo(f"Ingesting corpus from {corpus_dir} (manifest: {len(docs_list)} documents)...")
+
+    from maintidoc.domain import DocumentRecord
+    from maintidoc.ingestion.pdf import extract_pdf
+    from maintidoc.storage.objects import FilesystemStore
+
+    rendered_dir = corpus_dir / "rendered"
+    rendered_dir.mkdir(parents=True, exist_ok=True)
+    store = FilesystemStore(rendered_dir)
+    total_docs = 0
+    total_elements = 0
+    total_pages = 0
+
+    for doc_dict in docs_list:
+        doc = DocumentRecord(
+            document_id=doc_dict["document_id"],
+            version=doc_dict.get("version", "1.0"),
+            title=doc_dict.get("title", doc_dict["document_id"]),
+            equipment_family=doc_dict.get("equipment_family", "unknown"),
+            access_groups=frozenset(doc_dict.get("access_groups", ["maintenance"])),
+            object_key=doc_dict.get("object_key", f"documents/{doc_dict['document_id']}.pdf"),
+            sha256=doc_dict.get("sha256", "0" * 64),
+        )
+        pdf_path = corpus_dir / doc.object_key
+        if not pdf_path.exists():
+            continue
+
+        pdf_bytes = pdf_path.read_bytes()
+        result = extract_pdf(data=pdf_bytes, document=doc, store=store)
+        total_docs += 1
+        total_pages += result.page_count
+        total_elements += len(result.elements)
+
+    typer.echo(
+        f"Ingestion complete: {total_docs} documents processed, "
+        f"{total_pages} pages, {total_elements} elements extracted."
+    )
+
+
 if __name__ == "__main__":  # pragma: no cover
     app()
