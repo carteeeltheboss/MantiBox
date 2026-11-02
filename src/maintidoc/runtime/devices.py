@@ -272,16 +272,16 @@ def detect_devices() -> tuple[DeviceInfo, ...]:
     if not torch_cuda:
         # Either torch is absent, or it is a CPU-only build. nvidia-smi still
         # tells us whether CUDA hardware exists, which `doctor` should report.
-        for index, (name, total, free) in enumerate(_query_nvidia_smi()):
-            if any(d.kind is DeviceKind.CUDA and d.index == index for d in found):
+        for smi_index, (smi_name, smi_total, smi_free) in enumerate(_query_nvidia_smi()):
+            if any(d.kind is DeviceKind.CUDA and d.index == smi_index for d in found):
                 continue
             found.append(
                 DeviceInfo(
                     kind=DeviceKind.CUDA,
-                    name=name,
-                    index=index,
-                    total_vram_gb=total,
-                    free_vram_gb=free,
+                    name=smi_name,
+                    index=smi_index,
+                    total_vram_gb=smi_total,
+                    free_vram_gb=smi_free,
                     torch_visible=torch_installed,
                     # Reached only when torch cannot drive CUDA: either torch is
                     # absent or it is a CPU-only build. The hardware exists, so

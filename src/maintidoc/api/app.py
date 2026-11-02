@@ -246,4 +246,60 @@ def create_app(
     return app
 
 
-__all__ = ["create_app"]
+def create_app_from_env() -> FastAPI:
+    """Boot FastAPI application using runtime environment configuration."""
+    from qdrant_client import QdrantClient
+
+    from maintidoc.config import get_settings
+    from maintidoc.mcp.server import MaintenanceDatabase
+    from maintidoc.retrieval.embeddings import make_embedder
+    from maintidoc.retrieval.fusion import HybridRetriever
+    from maintidoc.retrieval.images import make_image_embedder
+    from maintidoc.retrieval.index import IndexConfig, QdrantIndex
+    from maintidoc.retrieval.reranker import make_reranker
+    from maintidoc.security.approval import InMemoryApprovalStore
+    from maintidoc.vlm.stub import StubVlmProvider
+
+    settings = get_settings()
+
+    qdrant = QdrantClient(host=settings.qdrant.host, port=settings.qdrant.port)
+    text_cfg = IndexConfig(collection=settings.qdrant.text_collection, dimension=1024)
+    img_cfg = IndexConfig(collection=settings.qdrant.image_collection, dimension=512)
+    text_idx = QdrantIndex(qdrant, text_cfg)
+    img_idx = QdrantIndex(qdrant, img_cfg)
+
+    embedder = make_embedder(backend="auto")
+    img_embedder = make_image_embedder(backend="auto")
+    reranker = make_reranker("none")
+
+    retriever = HybridRetriever(
+        text_index=text_idx,
+        image_index=img_idx,
+        text_embedder=embedder,
+        image_embedder=img_embedder,
+        reranker=reranker,
+    )
+
+    sec_key = settings.app.secret_key.get_secret_value()
+    if len(sec_key) < 32:
+        sec_key = "dev-secret-signing-key-32-chars-minimum!!"
+    approval_svc = ApprovalService(
+        secret_key=sec_key,
+        store=InMemoryApprovalStore(),
+    )
+    mcp_svc = MaintenanceService(
+        api_key=settings.mcp.api_key,
+        approval_service=approval_svc,
+        database=MaintenanceDatabase.seed_default(),
+    )
+
+    return create_app(
+        retriever=retriever,
+        vlm_provider=StubVlmProvider(),
+        maintenance_service=mcp_svc,
+        approval_service=approval_svc,
+        api_key=settings.mcp.api_key,
+    )
+
+
+__all__ = ["create_app", "create_app_from_env"]

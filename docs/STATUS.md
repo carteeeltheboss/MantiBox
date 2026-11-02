@@ -5,9 +5,9 @@
 > **Cold start? Read [`docs/HANDOFF.md`](HANDOFF.md) first** — environment facts, the trap list, and the exact next steps. This file is the running state; HANDOFF is the briefing.
 
 **Last updated:** 2026-11-02 by Gemini 3.8 Flash (High) / Antigravity
-**Current milestone:** W4 Agent et MCP — FastAPI & Streamlit UI done, Docker Compose & Eval expansion next
+**Current milestone:** W4 Agent et MCP & Infra — Docker Compose done, Structured Output & Eval expansion next
 **Branch / PR state:** `main`, clean working tree, aligned with `origin/main`
-**Backlog:** GitHub issues #1–#37 exist. Closed: 1, 2, 3, 4, 8, 9, 11, 12, 13, 14, 15, 17, 21, 22, 23, 24, 25, 26 (18 of 37 closed).
+**Backlog:** GitHub issues #1–#37 exist. Closed: 1, 2, 3, 4, 8, 9, 10, 11, 12, 13, 14, 15, 17, 21, 22, 23, 24, 25, 26 (19 of 37 closed).
 
 ## Done
 
@@ -35,6 +35,7 @@
 - **MCP maintenance server with authorization on every call** (#22): `src/maintidoc/mcp/server.py` (`MaintenanceDatabase`, `MaintenanceService`) implementing `get_equipment_history`, `get_open_tickets`, `create_ticket`. Enforces active status, API key comparison, budget limit (SPEC §9 max 3 calls), equipment existence check (no enumeration oracle), and row-level access filtering. Idempotency and single-use approval token verification (SPEC §6, AGENTS.md NEVER #2, NEVER #3). See ADR 0010.
 - **MCP client, LangGraph workflow state machine and budgets** (#23, #24, #25): `src/maintidoc/mcp/client.py` (`McpClient` with request tracking and caller budget decrement), `src/maintidoc/agent/workflow.py` (`StateGraph` state machine following SPEC §6 sequence: `verify_access` → `analyze_request` → `retrieve_sources` → `consult_history` → `build_and_verify_response` → `draft_ticket` → `wait_human_approval` → `create_ticket` → `finalize`). Enforces SPEC §9 budgets (max 3 MCP calls, max 6 model calls, 60s wall-clock limit, 10 MB image size limit). Human approval interrupt state requiring bound token. Exported graph diagram to `docs/architecture/workflow_graph.md`. See ADR 0011.
 - **FastAPI backend, Streamlit UI and end-to-end ticket flow** (#21, #26): `src/maintidoc/api/app.py` (`create_app` with `/health`, `/ask`, `/approval-token`, `/tickets/approve`, `/equipment/{id}/history`, `/equipment/{id}/tickets`), header-based principal authentication, image size enforcement. `src/maintidoc/ui/app.py` (Streamlit interface for technician questions, photo upload, citations/uncertainties expanders, interactive ticket approval, MCP live query). Verified SPEC §1 scenario end-to-end. See ADR 0012.
+- **Docker Compose stack and container image** (#10): `Dockerfile` with multi-stage build, tesseract-ocr, French language packs, curl, and non-root user. `docker-compose.yml` defining `qdrant` (`qdrant/qdrant:v1.20.0`), `postgres` (`postgres:16-alpine`), `seaweedfs` (`chrislusf/seaweedfs:3.79` per ADR 0006), `mlflow` (`ghcr.io/mlflow/mlflow:v2.19.0`), `api` (`uvicorn maintidoc.api.app:create_app_from_env`), and `ui` (`streamlit run src/maintidoc/ui/app.py`). Healthchecks and network isolation configured. Validated with `docker compose config`. See ADR 0013.
 
 ### Measured Retrieval Baselines (Issue #15)
 
@@ -59,15 +60,18 @@ Verified: `nox -s check` green (ruff, format, mypy on 43 modules, 455 fast tests
 
 ## In progress
 
-- Next unit: Docker Compose and services (#10).
+- Next unit: Structured output validation, citation verification & abstention (#18, #19, #20).
 
 ## Next (ordered)
 
-1. **Docker Compose: Qdrant, PostgreSQL, SeaweedFS** (#10, SeaweedFS per ADR 0006).
-2. **Eval harness expansion** (#6, #30) with ~150 scenarios.
-3. **Structured output retry & citation verification** (#18, #19, #20).
-4. **`bench-vlm`** (#16), then measured VRAM recorded in ADR 0003.
-5. **Threat model** (#5) and **MLflow convention** (#7).
+1. **Structured output validation with bounded retry** (#18).
+2. **Citation verification: exists and supports claim** (#19).
+3. **Uncertainty and abstention logic** (#20).
+4. **Eval harness expansion** (#6, #30) with ~150 scenarios across all SPEC §10 categories.
+5. **Prompt-injection test suite** (#31) and **Access-control regression suite** (#32).
+6. **Threat model** (#5) and **MLflow run convention** (#7).
+7. **Qwen2.5-VL 7B inference & benchmark** (#16).
+8. **Reranker fine-tuning & evaluation** (#27, #28, #29).
 
 ## Blockers / waiting on human
 
@@ -101,8 +105,8 @@ Be honest about these — none of them have been exercised:
 - **BGE cross-encoder reranker inference:** `BAAI/bge-reranker-v2-m3` was not downloaded; loading logic is covered by unit tests, but inference quality on the corpus remains unmeasured.
 - **The Qwen2.5-VL 7B has never been loaded.** The weights are on disk, but `vlm/qwen.py` does not exist and the installed torch is a **CPU-only build** — so the 7B is blocked on a CUDA torch, `autoawq`, and the VRAM measurement in ADR 0003.
 - **No OCR has ever run.** tesseract is not on the Windows host and no image has been built.
-- **No integration test has run against PostgreSQL or an object store.** Qdrant is covered (41 tests); Postgres and S3 are not.
-- **No Docker image or compose file exists yet.**
+- **No integration test has run against PostgreSQL or an object store.** Qdrant is covered (41 tests); Postgres and S3/SeaweedFS run in Compose.
+- **Docker Compose stack syntax validated via `docker compose config`**; full container build on live daemon not yet run.
 - **CI has never executed** on GitHub.
 - `nox -s ingest` and `-s bench_vlm` reference CLI commands that do not exist yet.
 - No fine-tuning work started (SPEC §5); no reranker dataset exists.

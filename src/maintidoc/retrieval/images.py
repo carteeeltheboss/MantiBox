@@ -236,7 +236,7 @@ class ClipImageEmbedder:
 
                 device = self._resolve_device()
                 try:
-                    model = CLIPModel.from_pretrained(self._image_model_id)
+                    loaded_model: Any = CLIPModel.from_pretrained(self._image_model_id)
                     processor = CLIPProcessor.from_pretrained(self._image_model_id)
                 except Exception as exc:
                     # Unloadable model must be a typed error, not a Hub traceback.
@@ -244,7 +244,7 @@ class ClipImageEmbedder:
                         f"could not load CLIP image tower {self._image_model_id!r}: "
                         f"{exc.__class__.__name__}"
                     ) from exc
-                self._image_model = model.to(device).eval()
+                self._image_model = loaded_model.to(device).eval()
                 self._processor = processor
                 logger.info("loaded CLIP image tower %s on %s", self._image_model_id, device)
         return self._image_model, self._processor, self._resolve_device()

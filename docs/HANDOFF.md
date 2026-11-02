@@ -8,17 +8,17 @@ unverified it says so.
 
 ## TL;DR
 
-The **foundation, retrieval fusion, vertical slice, MCP server, client, LangGraph workflow, FastAPI backend, and Streamlit UI are complete and tested.** Ingestion,
+The **foundation, retrieval fusion, vertical slice, MCP server, client, LangGraph workflow, FastAPI backend, Streamlit UI, and Docker Compose stack are complete and tested.** Ingestion,
 both embedding towers, both vector indexes, access control, RRF multimodal fusion, the reranker seam,
 the end-to-end question answering pipeline (`AnswerPipeline`), the MCP maintenance service (`MaintenanceService`),
 the MCP client (`McpClient`), the LangGraph state machine (`src/maintidoc/agent/workflow.py`), budgets (SPEC §9),
 FastAPI authenticated endpoints (`/ask`, `/approval-token`, `/tickets/approve`, `/equipment/{id}/history`), Streamlit UI,
-and the complete SPEC §1 end-to-end ticket flow all work and are covered by 496 tests.
+Docker Compose orchestration (`Dockerfile` + `docker-compose.yml`), and the complete SPEC §1 end-to-end ticket flow all work and are covered by 496 tests.
 **Questions can now be answered, citations verified, and tickets created through both the API and the interactive UI.**
 
-**Single next action:** issue **#10** (Docker Compose: Qdrant, PostgreSQL, SeaweedFS) and **#6/#30** (eval harness expansion).
+**Single next action:** issues **#18, #19, #20** (Structured output retry, citation verification & abstention) and **#6/#30** (eval harness expansion).
 
-Backlog: **18 of 37** issues closed (#1, 2, 3, 4, 8, 9, 11, 12, 13, 14, 15, 17, 21, 22, 23, 24, 25, 26).
+Backlog: **19 of 37** issues closed (#1, 2, 3, 4, 8, 9, 10, 11, 12, 13, 14, 15, 17, 21, 22, 23, 24, 25, 26).
 
 ---
 

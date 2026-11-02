@@ -1,0 +1,104 @@
+services:
+  qdrant:
+    image: qdrant/qdrant:v1.20.0
+    container_name: maintidoc-qdrant
+    restart: unless-stopped
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:6333/healthz || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: maintidoc-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-maintidoc}
+      POSTGRES_USER: ${POSTGRES_USER:-maintidoc}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev-secret-password-change-me}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U maintidoc -d maintidoc"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  seaweedfs:
+    image: chrislusf/seaweedfs:3.79
+    container_name: maintidoc-seaweedfs
+    restart: unless-stopped
+    command: ["server", "-s3", "-s3.port=8333", "-dir=/data"]
+    ports:
+      - "8333:8333"
+      - "9333:9333"
+    volumes:
+      - seaweedfs_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8333 || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.19.0
+    container_name: maintidoc-mlflow
+    restart: unless-stopped
+    command: ["mlflow", "server", "--host", "0.0.0.0", "--port", "5000"]
+    ports:
+      - "5000:5000"
+    volumes:
+      - mlflow_data:/mlflow
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: maintidoc-api
+    restart: unless-stopped
+    command: ["uvicorn", "maintidoc.api.app:create_app_from_env", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "8000:8000"
+    environment:
+      MAINTIDOC_ENV: dev
+      POSTGRES_HOST: postgres
+      QDRANT_HOST: qdrant
+      MINIO_ENDPOINT: seaweedfs:8333
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      MAINTIDOC_SECRET_KEY: ${MAINTIDOC_SECRET_KEY:-dev-secret-signing-key-32-chars-minimum!!}
+      MCP_API_KEY: ${MCP_API_KEY:-dev-mcp-key-2026}
+    depends_on:
+      qdrant:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      seaweedfs:
+        condition: service_healthy
+
+  ui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: maintidoc-ui
+    restart: unless-stopped
+    command: ["streamlit", "run", "src/maintidoc/ui/app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+    ports:
+      - "8501:8501"
+    environment:
+      DEFAULT_API_URL: http://api:8000
+    depends_on:
+      - api
+
+volumes:
+  qdrant_data:
+  postgres_data:
+  seaweedfs_data:
+  mlflow_data:
