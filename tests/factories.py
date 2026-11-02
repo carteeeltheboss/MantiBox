@@ -6,10 +6,31 @@ test modules so two files cannot drift into different notions of "an element".
 
 from __future__ import annotations
 
-from maintidoc.domain import Element, RetrievedElement
+from maintidoc.domain import DocumentRecord, Element, RetrievedElement
 from maintidoc.schemas import ElementKind
 
 DEFAULT_TEXT = "Voyant orange : alarme de température, seuil 85 °C."
+
+
+def make_document(
+    *,
+    document_id: str = "manuel_pompe_a",
+    version: str = "2024-03",
+    title: str = "Manuel Pompe A",
+    equipment_family: str = "pompes",
+    access_groups: frozenset[str] = frozenset({"maintenance"}),
+    object_key: str = "documents/manuel_pompe_a.pdf",
+    sha256: str = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+) -> DocumentRecord:
+    return DocumentRecord(
+        document_id=document_id,
+        version=version,
+        title=title,
+        equipment_family=equipment_family,
+        access_groups=access_groups,
+        object_key=object_key,
+        sha256=sha256,
+    )
 
 
 def make_element(

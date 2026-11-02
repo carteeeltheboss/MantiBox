@@ -8,19 +8,20 @@ unverified it says so.
 
 ## TL;DR
 
-The **foundation, retrieval fusion, vertical slice, MCP server, client, LangGraph workflow, FastAPI backend, Streamlit UI, Docker Compose stack, structured output retry, citation evidence verification, and uncertainty logic are complete and tested.** Ingestion,
+The **foundation, retrieval fusion, vertical slice, MCP server & client, LangGraph workflow, FastAPI backend, Streamlit UI, Docker Compose stack, structured output retry, citation evidence verification, uncertainty logic, threat model, MLflow conventions, 150-scenario evaluation suite, and security regression suites are complete and tested.** Ingestion,
 both embedding towers, both vector indexes, access control, RRF multimodal fusion, the reranker seam,
 the end-to-end question answering pipeline (`AnswerPipeline`), the MCP maintenance service (`MaintenanceService`),
 the MCP client (`McpClient`), the LangGraph state machine (`src/maintidoc/agent/workflow.py`), budgets (SPEC §9),
 FastAPI authenticated endpoints (`/ask`, `/approval-token`, `/tickets/approve`, `/equipment/{id}/history`), Streamlit UI,
 Docker Compose orchestration (`Dockerfile` + `docker-compose.yml`), structured output retry (`validation.py`),
 citation verification against evidence (`citations.py`), uncertainty and abstention handling (`uncertainty.py`),
-and the complete SPEC §1 end-to-end ticket flow all work and are covered by 512 tests (471 fast + 41 integration).
-**Questions can now be answered, citations verified, and tickets created through both the API and the interactive UI.**
+the threat model (`docs/security/threat_model.md`), MLflow tracking conventions (`src/maintidoc/tracking.py`),
+the 150-scenario evaluation suite (`eval/scenarios.py`, `eval/scenarios.json`), prompt injection test suite (`tests/test_prompt_injection.py`),
+security regression suite (`tests/test_security_regression.py`), and the complete SPEC §1 end-to-end ticket flow all work and are covered by 524 tests (483 fast + 41 integration).
 
-**Single next action:** issue **#6/#30** (eval harness expansion to ~150 scenarios across all SPEC §10 categories).
+**Single next action:** issue **#16** (Qwen2.5-VL 7B inference engine `src/maintidoc/vlm/qwen.py` & benchmark).
 
-Backlog: **22 of 37** issues closed (#1, 2, 3, 4, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26).
+Backlog: **28 of 37** issues closed (#1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 30, 31, 32).
 
 ---
 
@@ -110,17 +111,29 @@ re-download; point loaders at these paths.
 | RRF fusion, reranker arms, retrieval metrics | `retrieval/fusion.py`, `retrieval/reranker.py`, `retrieval/metrics.py`, `eval/run.py` | #15 |
 | Vertical slice RAG pipeline (`AnswerPipeline`) | `src/maintidoc/agent/pipeline.py` | #9 |
 | MCP maintenance service (auth on every call) | `src/maintidoc/mcp/server.py` | #22 |
+| MCP client (`McpClient`) & budget decrement | `src/maintidoc/mcp/client.py` | #23 |
+| LangGraph workflow state machine & human approval interrupt | `src/maintidoc/agent/workflow.py` | #24, #25 |
+| FastAPI backend & Streamlit UI | `src/maintidoc/api/app.py`, `src/maintidoc/ui/app.py` | #21, #26 |
+| Docker Compose stack & Dockerfile | `Dockerfile`, `docker-compose.yml` | #10 |
+| Structured output validation with bounded retry | `src/maintidoc/agent/validation.py` | #18 |
+| Citation verification against evidence | `src/maintidoc/agent/citations.py` | #19 |
+| Uncertainty & abstention handling | `src/maintidoc/agent/uncertainty.py` | #20 |
+| Threat model & trust boundaries | `docs/security/threat_model.md` | #5 |
+| Standardized MLflow run metadata convention | `src/maintidoc/tracking.py` | #7 |
+| 150-scenario evaluation suite & multimodal lift | `eval/scenarios.py`, `eval/scenarios.json`, `scripts/generate_scenarios.py` | #6, #30 |
+| Prompt injection & security regression test suites | `tests/test_prompt_injection.py`, `tests/test_security_regression.py` | #31, #32 |
 | `doctor` CLI | `cli.py` | — |
-| 10 ADRs, STATUS, ARCHITECTURE, session logs | `docs/` | — |
+| 15 ADRs, STATUS, ARCHITECTURE, session logs | `docs/` | — |
 
 ## What is NOT built
 
-- `vlm/qwen.py` — the real Qwen2.5-VL provider. **The 7B has never been loaded.**
-- MCP client, LangGraph workflow (`#23`–`#26`)
-- FastAPI, Streamlit (`#21`) · **`Dockerfile`, `docker-compose.yml`** (`#10`, `#34`)
-- Eval harness expansion to ~150 scenarios (`#30`) · fine-tuning (`#27`–`#28`) · `bench-vlm` (`#16`)
-- `maintidoc ingest` and `maintidoc bench-vlm` CLI commands — `nox -s ingest|bench_vlm`
-  currently fail by design
+- `vlm/qwen.py` — the real Qwen2.5-VL provider & benchmark (`#16`).
+- Reranker fine-tuning dataset generation & adapter training (`#27`–`#29`).
+- Performance benchmark (`#33`).
+- Docker Compose deployment validation & rollback procedure (`#34`).
+- Fiche de limites (`#35`).
+- Demo rehearsal script (`#36`).
+- Final README and repo cleanup (`#37`).
 
 ---
 

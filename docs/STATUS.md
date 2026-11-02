@@ -5,9 +5,9 @@
 > **Cold start? Read [`docs/HANDOFF.md`](HANDOFF.md) first** — environment facts, the trap list, and the exact next steps. This file is the running state; HANDOFF is the briefing.
 
 **Last updated:** 2026-11-02 by Gemini 3.8 Flash (High) / Antigravity
-**Current milestone:** W5 Évaluation et Durcissement — Structured output, Citations & Abstention done, Eval expansion (#6, #30) next
+**Current milestone:** W5/W6 — Eval suite & security regressions done; Qwen2.5-VL (#16) & Reranker adaptation (#27-#29) next
 **Branch / PR state:** `main`, clean working tree, aligned with `origin/main`
-**Backlog:** GitHub issues #1–#37 exist. Closed: 1, 2, 3, 4, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26 (22 of 37 closed).
+**Backlog:** GitHub issues #1–#37 exist. Closed: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 30, 31, 32 (28 of 37 closed).
 
 ## Done
 
@@ -39,6 +39,10 @@
 - **Structured output validation with bounded retry** (#18): `src/maintidoc/agent/validation.py` (`generate_validated_output`) with bounded retries counted against the 6-model-call budget, versioned retry prompt `prompts/retry_format_v1.yaml`, and safe abstention fallback. See ADR 0014.
 - **Citation verification against retrieved elements and evidence** (#19): `src/maintidoc/agent/citations.py` (`verify_citations_against_evidence`, `calculate_citation_validity`), evidence check via `prompts/evidence_check_v1.yaml` and `EvidenceVerdict`, removal of unsupported citations, automatic downgrading to abstained, and citation validity metric computation. See ADR 0014.
 - **Uncertainty and abstention logic** (#20): `src/maintidoc/agent/uncertainty.py` (`detect_uncertainty`, `build_clarification_payload`, `build_abstention_payload`, `verify_no_confidence_emitted`) covering unreadable photos, absent sources, contradictory sources, and out-of-role risks. Zero fabricated confidence percentage strictly enforced (AGENTS.md NEVER #6). See ADR 0014.
+- **Threat model and trust boundaries** (#5): `docs/security/threat_model.md` covering assets, untrusted input boundaries, 4 attack paths, risk register (R-01 to R-06), and complete test mappings for SPEC §9. See ADR 0015.
+- **MLflow standardized run metadata convention** (#7): `src/maintidoc/tracking.py` (`build_run_metadata`, `log_run_with_convention`) capturing model_id, provider, prompt_versions, reranker, index_version, git_commit, device, env. Documented in `docs/ARCHITECTURE.md`. See ADR 0015.
+- **150-Scenario evaluation suite and lift comparison** (#6, #30): `eval/scenarios.py`, `eval/scenarios.json`, `scripts/generate_scenarios.py` with 150 scenarios across all 6 SPEC §10 categories (all marked `human_reviewed: false` per AGENTS.md), runner measuring status accuracy, citation validity rate, and multimodal lift against text-only ablation. See ADR 0015.
+- **Prompt injection and security regression test suites** (#31, #32): `tests/test_prompt_injection.py` and `tests/test_security_regression.py` covering text, document, OCR sticker, and MCP injection attacks, strict tenant isolation across Qdrant and DocumentOpener, and single-use bound approval token enforcement. See ADR 0015.
 
 ### Measured Retrieval Baselines (Issue #15)
 
@@ -59,20 +63,21 @@ Evaluated on the seed scenarios via `eval/run.py`:
 3. VLM provider uses deterministic `StubVlmProvider` until CUDA environment is ready for the 7B (#16).
 4. Maintenance service data store is currently in-memory/seeded (Postgres persistence is in #10).
 
-Verified: `nox -s check` green (ruff, format, mypy on 43 modules, 455 fast tests); **496 tests** including 41 integration tests against a live `qdrant/qdrant:v1.20.0`. `doctor`, `eval.run`, and `scripts.export_graph` run cleanly.
+Verified: `nox -s check` green (ruff, format, mypy on 47 modules, 483 fast tests); **524 tests** including 41 integration tests against a live `qdrant/qdrant:v1.20.0`. `doctor`, `eval.run`, and `scripts.export_graph` run cleanly.
 
 ## In progress
 
-- Next unit: Evaluation harness expansion and ~150 scenarios (#6, #30).
+- Next unit: Qwen2.5-VL 7B inference & benchmark (#16) and Reranker adaptation (#27, #28, #29).
 
 ## Next (ordered)
 
-1. **Eval harness expansion** (#6, #30) with ~150 scenarios across all SPEC §10 categories.
-2. **Prompt-injection test suite** (#31) and **Access-control regression suite** (#32).
-3. **Threat model** (#5) and **MLflow run convention** (#7).
-4. **Qwen2.5-VL 7B inference & benchmark** (#16).
-5. **Reranker fine-tuning & evaluation** (#27, #28, #29).
-6. **Performance benchmark** (#33) and **Demo rehearsal & limits sheet** (#34, #35, #36, #37).
+1. **Qwen2.5-VL 7B inference & benchmark** (#16).
+2. **Reranker fine-tuning dataset & pipeline & comparative eval** (#27, #28, #29).
+3. **Performance benchmark** (#33) (median and p95 latency, memory footprint).
+4. **Docker Compose deployment validation & rollback** (#34).
+5. **Fiche de limites** (#35) (`docs/limits/fiche_de_limites.md` / SPEC §13).
+6. **Demo script and rehearsal** (#36) (SPEC §14).
+7. **Final README and repo cleanup** (#37).
 
 ## Blockers / waiting on human
 
