@@ -23,7 +23,8 @@ graph TD;
 	finalize(finalize)
 	__end__([<p>__end__</p>]):::last
 	__start__ --> verify_access;
-	analyze_request --> retrieve_sources;
+	analyze_request -.-> finalize;
+	analyze_request -.-> retrieve_sources;
 	build_and_verify_response -.-> create_ticket;
 	build_and_verify_response -.-> draft_ticket;
 	build_and_verify_response -.-> finalize;
@@ -45,13 +46,13 @@ graph TD;
 
 ## Node Flow Description
 
-1. **`verify_access`**: Evaluates principal status (`is_active`, group presence) and enforces image size limits.
-2. **`handle_access_denied`**: Short-circuits unauthorized requests directly to `END` with `AnswerStatus.ABSTAINED` without leaking sources or consuming model calls.
-3. **`analyze_request`**: Performs visual analysis with `visual_analysis_v1` prompt when an image is present, detecting visual features and identifying equipment.
-4. **`retrieve_sources`**: Executes access-filtered hybrid search (`HybridRetriever`) combining dense BGE-M3 text and CLIP image vectors via RRF fusion.
-5. **`consult_history`**: Only invoked when equipment context is required (failure history, previous interventions, or ticket request), querying MCP tools `get_equipment_history` and `get_open_tickets`.
-6. **`build_and_verify_response`**: Formats versioned `answer_v1` prompt, calls VLM provider, parses lenient draft, and verifies citations against actually retrieved elements (AGENTS.md NEVER #5).
-7. **`draft_ticket`**: Formats candidate maintenance ticket, computes canonical content hash (`canonical_content_hash`) and derives idempotency key (`derive_idempotency_key`), yielding `TicketProposal`.
-8. **`wait_human_approval`**: Interrupt / pause state awaiting human approval token bound to user + content hash (SPEC §6).
-9. **`create_ticket`**: Calls MCP tool `create_ticket` with verified approval token, creates or deduplicates ticket, and returns confirmation.
-10. **`finalize`**: Assembles final `AnswerPayload` ensuring all status invariants are satisfied.
+1. **`verify_access`**: Evaluates principal status and enforces image limits.
+2. **`handle_access_denied`**: Short-circuits unauthorized requests to `END`.
+3. **`analyze_request`**: Visual analysis with `visual_analysis_v1` when image present.
+4. **`retrieve_sources`**: Access-filtered hybrid search (`HybridRetriever`).
+5. **`consult_history`**: Consults MCP history and ticket tools when needed.
+6. **`build_and_verify_response`**: Inference, draft parsing, and citation check.
+7. **`draft_ticket`**: Formats candidate ticket, computes hash and idempotency key.
+8. **`wait_human_approval`**: Interrupt state awaiting bound approval token.
+9. **`create_ticket`**: Calls MCP tool `create_ticket` with verified approval token.
+10. **`finalize`**: Assembles final `AnswerPayload` ensuring all invariants hold.

@@ -5,9 +5,9 @@
 > **Cold start? Read [`docs/HANDOFF.md`](HANDOFF.md) first** — environment facts, the trap list, and the exact next steps. This file is the running state; HANDOFF is the briefing.
 
 **Last updated:** 2026-11-02 by Gemini 3.8 Flash (High) / Antigravity
-**Current milestone:** W4 Agent et MCP & Infra — Docker Compose done, Structured Output & Eval expansion next
+**Current milestone:** W5 Évaluation et Durcissement — Structured output, Citations & Abstention done, Eval expansion (#6, #30) next
 **Branch / PR state:** `main`, clean working tree, aligned with `origin/main`
-**Backlog:** GitHub issues #1–#37 exist. Closed: 1, 2, 3, 4, 8, 9, 10, 11, 12, 13, 14, 15, 17, 21, 22, 23, 24, 25, 26 (19 of 37 closed).
+**Backlog:** GitHub issues #1–#37 exist. Closed: 1, 2, 3, 4, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26 (22 of 37 closed).
 
 ## Done
 
@@ -36,6 +36,9 @@
 - **MCP client, LangGraph workflow state machine and budgets** (#23, #24, #25): `src/maintidoc/mcp/client.py` (`McpClient` with request tracking and caller budget decrement), `src/maintidoc/agent/workflow.py` (`StateGraph` state machine following SPEC §6 sequence: `verify_access` → `analyze_request` → `retrieve_sources` → `consult_history` → `build_and_verify_response` → `draft_ticket` → `wait_human_approval` → `create_ticket` → `finalize`). Enforces SPEC §9 budgets (max 3 MCP calls, max 6 model calls, 60s wall-clock limit, 10 MB image size limit). Human approval interrupt state requiring bound token. Exported graph diagram to `docs/architecture/workflow_graph.md`. See ADR 0011.
 - **FastAPI backend, Streamlit UI and end-to-end ticket flow** (#21, #26): `src/maintidoc/api/app.py` (`create_app` with `/health`, `/ask`, `/approval-token`, `/tickets/approve`, `/equipment/{id}/history`, `/equipment/{id}/tickets`), header-based principal authentication, image size enforcement. `src/maintidoc/ui/app.py` (Streamlit interface for technician questions, photo upload, citations/uncertainties expanders, interactive ticket approval, MCP live query). Verified SPEC §1 scenario end-to-end. See ADR 0012.
 - **Docker Compose stack and container image** (#10): `Dockerfile` with multi-stage build, tesseract-ocr, French language packs, curl, and non-root user. `docker-compose.yml` defining `qdrant` (`qdrant/qdrant:v1.20.0`), `postgres` (`postgres:16-alpine`), `seaweedfs` (`chrislusf/seaweedfs:3.79` per ADR 0006), `mlflow` (`ghcr.io/mlflow/mlflow:v2.19.0`), `api` (`uvicorn maintidoc.api.app:create_app_from_env`), and `ui` (`streamlit run src/maintidoc/ui/app.py`). Healthchecks and network isolation configured. Validated with `docker compose config`. See ADR 0013.
+- **Structured output validation with bounded retry** (#18): `src/maintidoc/agent/validation.py` (`generate_validated_output`) with bounded retries counted against the 6-model-call budget, versioned retry prompt `prompts/retry_format_v1.yaml`, and safe abstention fallback. See ADR 0014.
+- **Citation verification against retrieved elements and evidence** (#19): `src/maintidoc/agent/citations.py` (`verify_citations_against_evidence`, `calculate_citation_validity`), evidence check via `prompts/evidence_check_v1.yaml` and `EvidenceVerdict`, removal of unsupported citations, automatic downgrading to abstained, and citation validity metric computation. See ADR 0014.
+- **Uncertainty and abstention logic** (#20): `src/maintidoc/agent/uncertainty.py` (`detect_uncertainty`, `build_clarification_payload`, `build_abstention_payload`, `verify_no_confidence_emitted`) covering unreadable photos, absent sources, contradictory sources, and out-of-role risks. Zero fabricated confidence percentage strictly enforced (AGENTS.md NEVER #6). See ADR 0014.
 
 ### Measured Retrieval Baselines (Issue #15)
 
@@ -60,18 +63,16 @@ Verified: `nox -s check` green (ruff, format, mypy on 43 modules, 455 fast tests
 
 ## In progress
 
-- Next unit: Structured output validation, citation verification & abstention (#18, #19, #20).
+- Next unit: Evaluation harness expansion and ~150 scenarios (#6, #30).
 
 ## Next (ordered)
 
-1. **Structured output validation with bounded retry** (#18).
-2. **Citation verification: exists and supports claim** (#19).
-3. **Uncertainty and abstention logic** (#20).
-4. **Eval harness expansion** (#6, #30) with ~150 scenarios across all SPEC §10 categories.
-5. **Prompt-injection test suite** (#31) and **Access-control regression suite** (#32).
-6. **Threat model** (#5) and **MLflow run convention** (#7).
-7. **Qwen2.5-VL 7B inference & benchmark** (#16).
-8. **Reranker fine-tuning & evaluation** (#27, #28, #29).
+1. **Eval harness expansion** (#6, #30) with ~150 scenarios across all SPEC §10 categories.
+2. **Prompt-injection test suite** (#31) and **Access-control regression suite** (#32).
+3. **Threat model** (#5) and **MLflow run convention** (#7).
+4. **Qwen2.5-VL 7B inference & benchmark** (#16).
+5. **Reranker fine-tuning & evaluation** (#27, #28, #29).
+6. **Performance benchmark** (#33) and **Demo rehearsal & limits sheet** (#34, #35, #36, #37).
 
 ## Blockers / waiting on human
 

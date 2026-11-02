@@ -8,17 +8,19 @@ unverified it says so.
 
 ## TL;DR
 
-The **foundation, retrieval fusion, vertical slice, MCP server, client, LangGraph workflow, FastAPI backend, Streamlit UI, and Docker Compose stack are complete and tested.** Ingestion,
+The **foundation, retrieval fusion, vertical slice, MCP server, client, LangGraph workflow, FastAPI backend, Streamlit UI, Docker Compose stack, structured output retry, citation evidence verification, and uncertainty logic are complete and tested.** Ingestion,
 both embedding towers, both vector indexes, access control, RRF multimodal fusion, the reranker seam,
 the end-to-end question answering pipeline (`AnswerPipeline`), the MCP maintenance service (`MaintenanceService`),
 the MCP client (`McpClient`), the LangGraph state machine (`src/maintidoc/agent/workflow.py`), budgets (SPEC §9),
 FastAPI authenticated endpoints (`/ask`, `/approval-token`, `/tickets/approve`, `/equipment/{id}/history`), Streamlit UI,
-Docker Compose orchestration (`Dockerfile` + `docker-compose.yml`), and the complete SPEC §1 end-to-end ticket flow all work and are covered by 496 tests.
+Docker Compose orchestration (`Dockerfile` + `docker-compose.yml`), structured output retry (`validation.py`),
+citation verification against evidence (`citations.py`), uncertainty and abstention handling (`uncertainty.py`),
+and the complete SPEC §1 end-to-end ticket flow all work and are covered by 512 tests (471 fast + 41 integration).
 **Questions can now be answered, citations verified, and tickets created through both the API and the interactive UI.**
 
-**Single next action:** issues **#18, #19, #20** (Structured output retry, citation verification & abstention) and **#6/#30** (eval harness expansion).
+**Single next action:** issue **#6/#30** (eval harness expansion to ~150 scenarios across all SPEC §10 categories).
 
-Backlog: **19 of 37** issues closed (#1, 2, 3, 4, 8, 9, 10, 11, 12, 13, 14, 15, 17, 21, 22, 23, 24, 25, 26).
+Backlog: **22 of 37** issues closed (#1, 2, 3, 4, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26).
 
 ---
 

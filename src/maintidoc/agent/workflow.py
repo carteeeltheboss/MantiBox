@@ -26,8 +26,15 @@ from typing import Any, TypedDict
 from langgraph.graph import END, START, StateGraph
 from pydantic import BaseModel, ConfigDict, Field
 
+from maintidoc.agent.citations import verify_citations_against_evidence
 from maintidoc.agent.drafts import ModelAnswerDraft
-from maintidoc.agent.pipeline import verify_citations
+from maintidoc.agent.uncertainty import (
+    UncertaintyCase,
+    build_abstention_payload,
+    build_clarification_payload,
+    verify_no_confidence_emitted,
+)
+from maintidoc.agent.validation import generate_validated_output
 from maintidoc.domain import RetrievedElement
 from maintidoc.errors import BudgetExceededError, ValidationError
 from maintidoc.mcp.client import McpClient
@@ -54,7 +61,7 @@ from maintidoc.security.approval import (
     canonical_content_hash,
     derive_idempotency_key,
 )
-from maintidoc.vlm.base import ImageInput, OutputSchema, VlmProvider
+from maintidoc.vlm.base import ImageInput, OutputSchema, VisualObservation, VlmProvider
 
 logger = get_logger(__name__)
 
@@ -198,16 +205,53 @@ def build_workflow_graph(
         _check_model_budget(state)
         prompt = load_prompt("visual_analysis", version=1)
         instruction = prompt.format(question=state["question"])
-        vlm_resp = vlm_provider.generate(
+        limits = state.get("limits", WorkflowLimits())
+        remaining_budget = limits.max_model_calls - state.get("model_calls_used", 0)
+
+        val_res = generate_validated_output(
+            vlm=vlm_provider,
+            schema=VisualObservation,
             instruction=instruction,
             images=(ImageInput(data=image_bytes, media_type="image/png"),),
             expects=OutputSchema.VISUAL_OBSERVATION,
+            max_retries=1,
+            budget_remaining=remaining_budget,
         )
-        visual_text = vlm_resp.text
+        model_calls = state.get("model_calls_used", 0) + val_res.calls_made
+        obs = val_res.output
+
+        if obs is not None:
+            if obs.out_of_role:
+                payload = build_abstention_payload(
+                    case=UncertaintyCase.OUT_OF_ROLE_RISK,
+                    provenance=_create_provenance(
+                        model_calls=model_calls,
+                        mcp_calls=state.get("mcp_calls_used", 0),
+                    ),
+                )
+                return {
+                    "answer_payload": payload,
+                    "model_calls_used": model_calls,
+                }
+            if not obs.image_readable:
+                payload = build_clarification_payload(
+                    case=UncertaintyCase.UNREADABLE_PHOTO,
+                    provenance=_create_provenance(
+                        model_calls=model_calls,
+                        mcp_calls=state.get("mcp_calls_used", 0),
+                    ),
+                )
+                return {
+                    "answer_payload": payload,
+                    "model_calls_used": model_calls,
+                }
+            if obs.equipment_identified:
+                detected_eq = obs.equipment_identified
+
+        visual_text = val_res.last_response.text if val_res.last_response else ""
         if not detected_eq:
             detected_eq = _detect_equipment_id(visual_text)
 
-        model_calls = state.get("model_calls_used", 0) + 1
         return {
             "visual_analysis": visual_text,
             "equipment_id": detected_eq,
@@ -295,23 +339,40 @@ def build_workflow_graph(
         if raw_image is not None:
             images = (ImageInput(data=raw_image, media_type="image/png"),)
 
-        vlm_resp = vlm_provider.generate(
+        limits = state.get("limits", WorkflowLimits())
+        remaining_budget = limits.max_model_calls - state.get("model_calls_used", 0)
+        val_res = generate_validated_output(
+            vlm=vlm_provider,
+            schema=ModelAnswerDraft,
             instruction=instruction,
             images=images,
             expects=OutputSchema.ANSWER,
+            max_retries=1,
+            budget_remaining=remaining_budget,
         )
-        model_calls = state.get("model_calls_used", 0) + 1
+        model_calls = state.get("model_calls_used", 0) + val_res.calls_made
+        remaining_budget = max(0, limits.max_model_calls - model_calls)
 
-        try:
-            draft = ModelAnswerDraft.model_validate_json(vlm_resp.text)
-        except Exception:  # noqa: BLE001
+        if val_res.output is None:
             draft = ModelAnswerDraft(
                 status=AnswerStatus.ABSTAINED,
-                answer="Erreur de format de réponse du modèle.",
-                uncertainties=["Format JSON de sortie non valide"],
+                answer="Erreur de format de réponse du modèle après plusieurs tentatives.",
+                uncertainties=list(val_res.validation_errors)
+                or ["Format JSON de sortie non valide"],
             )
+            verified = []
+        else:
+            draft = val_res.output
+            report = verify_citations_against_evidence(
+                citations=draft.citations,
+                retrieved_elements=hits,
+                claim=draft.answer,
+                vlm_provider=vlm_provider if remaining_budget > 0 else None,
+                budget_remaining=remaining_budget,
+            )
+            model_calls += report.model_calls_used
+            verified = list(report.verified_citations)
 
-        verified = verify_citations(draft.citations, hits)
         return {
             "model_draft": draft,
             "verified_citations": verified,
@@ -455,6 +516,7 @@ def build_workflow_graph(
                 mcp_calls=mcp_client.calls_made,
             ),
         )
+        verify_no_confidence_emitted(payload)
         return {"answer_payload": payload}
 
     # Conditional routing
@@ -462,6 +524,11 @@ def build_workflow_graph(
         if not state.get("access_ok", False):
             return "handle_access_denied"
         return "analyze_request"
+
+    def route_after_analysis(state: WorkflowState) -> str:
+        if state.get("answer_payload") is not None:
+            return "finalize"
+        return "retrieve_sources"
 
     def route_after_response(state: WorkflowState) -> str:
         if state.get("request_ticket"):
@@ -498,7 +565,11 @@ def build_workflow_graph(
         ["handle_access_denied", "analyze_request"],
     )
     workflow.add_edge("handle_access_denied", END)
-    workflow.add_edge("analyze_request", "retrieve_sources")
+    workflow.add_conditional_edges(
+        "analyze_request",
+        route_after_analysis,
+        ["retrieve_sources", "finalize"],
+    )
     workflow.add_edge("retrieve_sources", "consult_history")
     workflow.add_edge("consult_history", "build_and_verify_response")
     workflow.add_conditional_edges(
