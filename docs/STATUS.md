@@ -5,9 +5,9 @@
 > **Cold start? Read [`docs/HANDOFF.md`](HANDOFF.md) first** — environment facts, the trap list, and the exact next steps. This file is the running state; HANDOFF is the briefing.
 
 **Last updated:** 2026-11-02 by Gemini 3.8 Flash (High) / Antigravity
-**Current milestone:** W2 Ingestion et recherche — vertical slice done, MCP server & client next
+**Current milestone:** W4 Agent et MCP — MCP server done, client & LangGraph next
 **Branch / PR state:** `main`, clean working tree, aligned with `origin/main`
-**Backlog:** GitHub issues #1–#37 exist. Closed: 1, 2, 3, 4, 8, 9, 11, 12, 13, 14, 15, 17 (12 of 37 closed).
+**Backlog:** GitHub issues #1–#37 exist. Closed: 1, 2, 3, 4, 8, 9, 11, 12, 13, 14, 15, 17, 22 (13 of 37 closed).
 
 ## Done
 
@@ -32,6 +32,7 @@
 - **`doctor` CLI** (`src/maintidoc/cli.py`): device, model plan with reasons, prompt versions, corpus integrity, object-store writability, tesseract availability, service reachability.
 - **RRF fusion + reranker arms + retrieval metrics** (#15): `retrieval/fusion.py` (Reciprocal Rank Fusion, default $k=60$ via `RetrievalSettings.rrf_k`, deduplication and channel attribution), `retrieval/reranker.py` with all four arms (`none`, `deterministic`, `bge`, `adapter`), `retrieval/metrics.py` (Recall@5, nDCG@5, MRR@10) with resilient MLflow logging, `eval/run.py` and `eval/benchmark_data.py`. See ADR 0008.
 - **Vertical slice** (#9): `src/maintidoc/agent/pipeline.py` (`AnswerPipeline`) wiring Question → `HybridRetriever` → `render_sources` → `StubVlmProvider` → `verify_citations` → `AnswerPayload`. Real citation verification strips unretrieved elements and enforces automatic abstention when evidence is missing. Tested against real corpus documents and seed scenarios. See ADR 0009.
+- **MCP maintenance server with authorization on every call** (#22): `src/maintidoc/mcp/server.py` (`MaintenanceDatabase`, `MaintenanceService`) implementing `get_equipment_history`, `get_open_tickets`, `create_ticket`. Enforces active status, API key comparison, budget limit (SPEC §9 max 3 calls), equipment existence check (no enumeration oracle), and row-level access filtering. Idempotency and single-use approval token verification (SPEC §6, AGENTS.md NEVER #2, NEVER #3). See ADR 0010.
 
 ### Measured Retrieval Baselines (Issue #15)
 
@@ -45,27 +46,27 @@ Evaluated on the seed scenarios via `eval/run.py`:
 | **Real BGE-M3 + CLIP (BGE Reranker)** | *unmeasured* | *unmeasured* | *unmeasured* | Weights not downloaded on host (~2.3 GB) |
 | **Real BGE-M3 + CLIP (Adapted Reranker)**| *unmeasured* | *unmeasured* | *unmeasured* | Adapter training pending (#28) |
 
-### Known Shortcuts (Issue #9)
+### Known Shortcuts (Issue #9, #22)
 
 1. Visual analysis branch is plumbed with empty visual observation when text-only.
-2. LangGraph state machine and loop budgets are deferred to #24-#25.
+2. LangGraph state machine and human approval interrupt node are wired in #23-#25.
 3. VLM provider uses deterministic `StubVlmProvider` until CUDA environment is ready for the 7B (#16).
+4. Maintenance service data store is currently in-memory/seeded (Postgres persistence is in #10).
 
-Verified: `nox -s check` green (ruff, format, mypy on 36 modules, 424 fast tests); **465 tests** including 41 integration tests against a live `qdrant/qdrant:v1.20.0`. `doctor` and `eval.run` run cleanly.
+Verified: `nox -s check` green (ruff, format, mypy on 37 modules, 434 fast tests); **475 tests** including 41 integration tests against a live `qdrant/qdrant:v1.20.0`. `doctor` and `eval.run` run cleanly.
 
 ## In progress
 
-- Next unit: MCP server & client (#22, #23).
+- Next unit: MCP client and LangGraph workflow (#23, #24).
 
 ## Next (ordered)
 
-1. **MCP server + client** (#22, #23) with per-call authorization.
-2. **LangGraph workflow** (#24): SPEC §6 node sequence, budgets, human-approval interrupt.
-3. **FastAPI + Streamlit** (#21).
-4. **Docker Compose** (#10, SeaweedFS per ADR 0006).
-5. **Eval harness expansion** (#6, #30) with ~150 scenarios.
-6. **`bench-vlm`** (#16), then measured VRAM recorded in ADR 0003.
-7. **Threat model** (#5) and **MLflow convention** (#7).
+1. **MCP client and LangGraph workflow** (#23, #24): SPEC §6 node sequence, budgets, human-approval interrupt.
+2. **FastAPI + Streamlit** (#21).
+3. **Docker Compose** (#10, SeaweedFS per ADR 0006).
+4. **Eval harness expansion** (#6, #30) with ~150 scenarios.
+5. **`bench-vlm`** (#16), then measured VRAM recorded in ADR 0003.
+6. **Threat model** (#5) and **MLflow convention** (#7).
 
 ## Blockers / waiting on human
 

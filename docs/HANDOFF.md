@@ -8,16 +8,16 @@ unverified it says so.
 
 ## TL;DR
 
-The **foundation, retrieval fusion and vertical slice are complete and tested.** Ingestion,
+The **foundation, retrieval fusion, vertical slice, and MCP server are complete and tested.** Ingestion,
 both embedding towers, both vector indexes, access control, RRF multimodal fusion, the reranker seam,
-and the end-to-end question answering pipeline (`AnswerPipeline`) all work and are covered by 465 tests.
+the end-to-end question answering pipeline (`AnswerPipeline`), and the MCP maintenance service (`MaintenanceService`)
+with per-call authorization and single-use approval token verification all work and are covered by 475 tests.
 **Questions can now be answered through the deterministic stub:** the real VLM provider, the
-MCP server, the LangGraph workflow, the API, the UI and Docker do not exist yet.
+MCP client, the LangGraph workflow, the API, the UI and Docker do not exist yet.
 
-**Single next action:** issue **#22/#23** (MCP maintenance server + client with per-call authorization),
-then **#24** (LangGraph workflow: node sequence, budgets, human-approval interrupt).
+**Single next action:** issue **#23/#24** (MCP client and LangGraph workflow: node sequence, budgets, human-approval interrupt).
 
-Backlog: **12 of 37** issues closed (#1, 2, 3, 4, 8, 9, 11, 12, 13, 14, 15, 17).
+Backlog: **13 of 37** issues closed (#1, 2, 3, 4, 8, 9, 11, 12, 13, 14, 15, 17, 22).
 
 ---
 
@@ -106,13 +106,14 @@ re-download; point loaders at these paths.
 | Deny-before-fetch document/figure opening | `retrieval/access.py` | #14 |
 | RRF fusion, reranker arms, retrieval metrics | `retrieval/fusion.py`, `retrieval/reranker.py`, `retrieval/metrics.py`, `eval/run.py` | #15 |
 | Vertical slice RAG pipeline (`AnswerPipeline`) | `src/maintidoc/agent/pipeline.py` | #9 |
+| MCP maintenance service (auth on every call) | `src/maintidoc/mcp/server.py` | #22 |
 | `doctor` CLI | `cli.py` | — |
-| 9 ADRs, STATUS, ARCHITECTURE, session logs | `docs/` | — |
+| 10 ADRs, STATUS, ARCHITECTURE, session logs | `docs/` | — |
 
 ## What is NOT built
 
 - `vlm/qwen.py` — the real Qwen2.5-VL provider. **The 7B has never been loaded.**
-- MCP server + client, LangGraph workflow (`#22`–`#26`)
+- MCP client, LangGraph workflow (`#23`–`#26`)
 - FastAPI, Streamlit (`#21`) · **`Dockerfile`, `docker-compose.yml`** (`#10`, `#34`)
 - Eval harness expansion to ~150 scenarios (`#30`) · fine-tuning (`#27`–`#28`) · `bench-vlm` (`#16`)
 - `maintidoc ingest` and `maintidoc bench-vlm` CLI commands — `nox -s ingest|bench_vlm`
@@ -141,8 +142,8 @@ docker run -d --name maintidoc-qdrant -p 6333:6333 -p 6334:6334 qdrant/qdrant:v1
 .venv\Scripts\python.exe scripts\generate_corpus.py
 ```
 
-**Expected today:** `nox -s check` green, **424 fast tests pass**, mypy clean on
-36 modules; full suite **465 passed** (41 of them integration against live Qdrant).
+**Expected today:** `nox -s check` green, **434 fast tests pass**, mypy clean on
+37 modules; full suite **475 passed** (41 of them integration against live Qdrant).
 
 **Two venvs matter.** `nox` builds its own at `.nox/check` and installs only
 `.[dev]`, so it has **no torch**. `.venv` has the `ml` extra. A test that behaves

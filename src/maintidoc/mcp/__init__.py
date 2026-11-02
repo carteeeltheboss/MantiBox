@@ -14,6 +14,7 @@ from maintidoc.mcp.contracts import (
     ToolCallContext,
     ToolName,
 )
+from maintidoc.mcp.server import MaintenanceDatabase, MaintenanceService
 
 __all__ = [
     "TOOL_SIGNATURES",
@@ -21,6 +22,8 @@ __all__ = [
     "CreateTicketResult",
     "EquipmentHistory",
     "EquipmentHistoryEntry",
+    "MaintenanceDatabase",
+    "MaintenanceService",
     "Ticket",
     "TicketList",
     "TicketState",
